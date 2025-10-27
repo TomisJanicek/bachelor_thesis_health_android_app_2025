@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -48,6 +49,7 @@ import java.time.format.DateTimeFormatter
 // Barevná paleta z tvého UI (mírně upravené hex)
 private val Mint = Color(0xFFA8CCC4)         // hlavní
 private val my_primary = Color(0xFFE0B0B0)    // světlejší levý panel
+private val my_second = Color(0xFFA6D8BE)
 private val TagYellow = Color(0xFFE91E63)    // štítek "Prohlídka"
 private val TagStroke = Color(0xFF1A1A1A)
 
@@ -84,7 +86,9 @@ fun CustomExaminationRow(
     Card(
         onClick = onClick,
         shape = cardShape,
-        colors = CardDefaults.cardColors(containerColor = my_primary), // pravá část (světlejší)
+        colors = CardDefaults.cardColors(
+            containerColor = my_second.copy(alpha = 0.5f) // <-- TADY JE ZMĚNA
+        ),
         modifier = modifier
             .fillMaxWidth()
             .height(height)
@@ -103,7 +107,7 @@ fun CustomExaminationRow(
                         .fillMaxHeight()
                         .aspectRatio(1f)
                         .clip(cardShape)
-                        .background(Color(0xFF6A8686)), // DEBUG podklad (klidně pak smaž)
+                        .background(my_second), // DEBUG podklad (klidně pak smaž)
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -123,7 +127,7 @@ fun CustomExaminationRow(
                         .fillMaxHeight()
                         .clip(cardShape)
                         .weight(1f)
-                        .background(Color(0xFF6A8686)),
+                        .background(my_second),
                     verticalArrangement = Arrangement.Top
                 ) {
                     // První řádek: Nadpis + štítek vpravo
@@ -136,7 +140,7 @@ fun CustomExaminationRow(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                fontSize = 28.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.SemiBold
                             ),
                             color = Color(0xFF222222),
@@ -235,7 +239,7 @@ private fun TagChip(type: ExaminationType) {
 private fun PreviewCustomExaminationRow() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         CustomExaminationRow(
-            title = "Praktik",
+            title = "Praktik neuronů",
             subtitle = "Jdu preventivně a protože se fakt bojím tak nevím co s tím",
             dateTime = LocalDateTime.of(2025, 12, 25, 22, 22),
             type = ExaminationType.PROHLIDKA,
