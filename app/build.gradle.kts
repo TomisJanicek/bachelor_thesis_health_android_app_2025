@@ -3,8 +3,8 @@ import java.util.Properties
 plugins {
         alias(libs.plugins.android.application)
         alias(libs.plugins.jetbrains.kotlin.android)
+        alias(libs.plugins.kotlin.compose)
         kotlin("kapt")
-        id("kotlin-kapt") // nebo id("com.google.devtools.ksp")
         id("dagger.hilt.android.plugin")
 }
 
@@ -47,6 +47,13 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/LICENSE-notice.md" // Přidání pravidla pro vyloučení konfliktu
+        }
+    }
 }
 
 dependencies {
@@ -64,6 +71,7 @@ dependencies {
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.ui.test.junit4.android)
+    implementation(libs.androidx.room.common.jvm)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -149,6 +157,10 @@ dependencies {
 
     // MockK pro instrumentované testy (pokud ho plánuješ používat i v androidTest)
     androidTestImplementation ("io.mockk:mockk-android:1.14.6")
+
+    // Compose Material Icons (kvůli Icons.Outlined.Event)
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
 
 }
 
