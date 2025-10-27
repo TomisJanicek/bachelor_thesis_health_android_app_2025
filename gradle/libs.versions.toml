@@ -1,0 +1,147 @@
+[versions]
+agp = "8.13.0"
+coilCompose = "2.7.0"
+converterGson = "3.0.0"
+coreTesting = "2.2.0"
+datastorePreferences = "1.1.7"
+gson = "2.13.2"
+hiltAndroidTesting = "2.57.2"
+imageLabeling = "17.0.9"
+kotlin = "2.2.21"
+coreKtx = "1.17.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+kotlinxCoroutinesTest = "1.10.2"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
+composeBom = "2025.10.01"
+
+hilt_v = "2.57.2"
+hilt-compose_v = "1.3.0"
+material = "1.13.0"
+mockitoCore = "5.20.0"
+mockitoCoreVersion = "5.20.0"
+mockitoKotlin = "6.1.0"
+mockk = "1.14.6"
+playServicesLocation = "21.3.0"
+retrofit_v = "3.0.0"
+logging_v = "5.2.1"
+moshi_v = "1.15.2"
+navigation_v = "2.9.5"
+ksp = "2.3.0"
+
+googlemap = "6.12.1"
+googlemap_compose = "19.2.0"
+googlemap_foundation = "1.9.4"
+
+
+room = "2.9.4"
+lifecycle = "2.9.4"
+
+googlemap_utils = "3.19.0"
+googlemap_widgets = "6.12.1"
+googlemap_compose_utils = "6.12.1"
+imageLabelingCommon = "18.1.0"
+imageLabelingDefaultCommon = "17.0.0"
+firebaseCrashlyticsBuildtools = "3.0.6"
+slf4jSimple = "2.0.17"
+uiTestJunit4 = "1.9.4"
+visionCommon = "17.3.0"
+junitKtx = "1.3.0"
+uiTestJunit4Android = "1.9.4"
+
+androidxTestExt = "1.3.0"
+androidxTestCore = "1.7.0"
+androidxTestRunner = "1.7.0"
+androidxTestRules = "1.7.0"
+
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hiltAndroidTesting" }
+image-labeling = { module = "com.google.mlkit:image-labeling", version.ref = "imageLabeling" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestJunit4" }
+androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "uiTestJunit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt_v" }
+hilt-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-compose_v" }
+hilt-kapt = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt_v" }
+
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+mockito-core-v500 = { module = "org.mockito:mockito-core", version.ref = "mockitoCoreVersion" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit_v" }
+retrofit-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit_v" }
+retrofit-okhtt3 = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "logging_v" }
+
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation_v" }
+navigation-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation_v" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation_v" }
+
+
+moshi = { group = "com.squareup.moshi", name = "moshi", version.ref = "moshi_v" }
+moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi_v" }
+moshi-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi_v" }
+
+room-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "room" }
+room-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "room" }
+
+room-ktx = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler-kapt = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-runtime = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+
+googlemap = { group = "com.google.maps.android", name = "maps-compose", version.ref = "googlemap" }
+googlemap-compose = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "googlemap_compose" }
+googlemap-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "googlemap_foundation" }
+androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version = "1.2.0-rc01" }
+
+lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+
+googlemap_utils = { group = "com.google.maps.android", name = "android-maps-utils", version.ref = "googlemap_utils" }
+googlemap_widgets = { group = "com.google.maps.android", name = "maps-compose-widgets", version.ref = "googlemap_widgets" }
+googlemap_compose_utils = { group = "com.google.maps.android", name = "maps-compose-utils", version.ref = "googlemap_compose_utils" }
+image-labeling-common = { group = "com.google.mlkit", name = "image-labeling-common", version.ref = "imageLabelingCommon" }
+image-labeling-default-common = { group = "com.google.mlkit", name = "image-labeling-default-common", version.ref = "imageLabelingDefaultCommon" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "uiTestJunit4" }
+vision-common = { module = "com.google.mlkit:vision-common", version.ref = "visionCommon" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
+androidx-ui-test-junit4-android = { group = "androidx.compose.ui", name = "ui-test-junit4-android", version.ref = "uiTestJunit4Android" }
+
+androidx-test-ext = { module = "androidx.test.ext:junit", version.ref = "androidxTestExt" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRules" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+
+
+
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+com-google-dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt_v" }
+com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+org-jetbrains-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+
