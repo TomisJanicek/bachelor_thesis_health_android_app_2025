@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -45,8 +47,8 @@ import java.time.format.DateTimeFormatter
 
 // Barevná paleta z tvého UI (mírně upravené hex)
 private val Mint = Color(0xFFA8CCC4)         // hlavní
-private val MintLight = Color(0xFFBDD9D3)    // světlejší levý panel
-private val TagYellow = Color(0xFFFFDD66)    // štítek "Prohlídka"
+private val my_primary = Color(0xFFE0B0B0)    // světlejší levý panel
+private val TagYellow = Color(0xFFE91E63)    // štítek "Prohlídka"
 private val TagStroke = Color(0xFF1A1A1A)
 
 enum class ExaminationType(val label: String, val tagColor: Color = TagYellow) {
@@ -68,140 +70,158 @@ fun CustomExaminationRow(
     @DrawableRes iconRes: Int,
     modifier: Modifier = Modifier,
     height: Dp = 140.dp,
+    weight: Dp = 140.dp,
     onClick: () -> Unit = {}
 ) {
     val radius = 28.dp
     val cardShape = RoundedCornerShape(radius)
     val dateFormatter = DateTimeFormatter.ofPattern("d. M. yyyy - HH:mm")
 
-    // přesný poměr levé části vůči celé kartě
-    val leftFraction = 0.44f      // dolaď klidně 0.42–0.46 podle Figmy
+    // 3-sloupcové rozvržení
+    val LEFT_WEIGHT = 0.44f
+    val GAP = 8.dp
 
     Card(
         onClick = onClick,
         shape = cardShape,
-        colors = CardDefaults.cardColors(containerColor = Mint), // základ = tmavší mint (LELÝ panel)
+        colors = CardDefaults.cardColors(containerColor = my_primary), // pravá část (světlejší)
         modifier = modifier
             .fillMaxWidth()
             .height(height)
     ) {
         Box(Modifier.fillMaxSize()) {
-
-            // 1) PRAVÝ PANEL se zakulaceným levým okrajem -> tvoří "hezké zakulacené oddělení"
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(1f) // start: celé
-                    .clip(cardShape)
-                    .background(MintLight) // světlejší pravá část
-                    .align(Alignment.CenterEnd)
-            )
-            // Překreslit levý díl tmavší barvou tak, aby zůstal zakulacený střed
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(leftFraction)
-                    .clip(cardShape)
-                    .background(Mint) // vrátíme zpět tmavší L panel
-                    .align(Alignment.CenterStart)
-            )
-
-            // 2) OBSAH – přesný layout: levý obrazový panel = čtverec přes CELÝ levý díl
+            // -------- 3 SLOUPCE --------
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 0.dp, vertical = 0.dp),
                 verticalAlignment = Alignment.Top
             ) {
-                // Obrázek přes celý levý panel, se stejným rádiusem
+                // 1) OBRÁZEK – čtverec se stejným rádiusem jako karta
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(leftFraction)
+                        .aspectRatio(1f)
                         .clip(cardShape)
-                        .background(Color(0xFFBBD5FF)), // pomocné modré pozadí (můžeš odstranit)
+                        .background(Color(0xFF6A8686)), // DEBUG podklad (klidně pak smaž)
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(iconRes),
                         contentDescription = null,
                         modifier = Modifier.matchParentSize(),
-                        contentScale = ContentScale.Crop // čtverec vyplní celý panel
+                        contentScale = ContentScale.Crop
                     )
                 }
 
-                Spacer(Modifier.width(16.dp))
+                // 2) MEZERA
+                Spacer(Modifier.width(GAP))
 
+                // 3) TEXTY + ŠTÍTEK
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .weight(1f),
+                        .clip(cardShape)
+                        .weight(1f)
+                        .background(Color(0xFF6A8686)),
                     verticalArrangement = Arrangement.Top
                 ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = Color(0xFF222222),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    // První řádek: Nadpis + štítek vpravo
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp, 16.dp, 16.dp, 0.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = Color(0xFF222222),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+
+                    }
 
                     if (!subtitle.isNullOrBlank()) {
-                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color(0xFF4B4B4B),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = modifier.padding(horizontal = 16.dp)
                         )
                     }
 
-                    Spacer(Modifier.height(24.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(modifier = Modifier.weight(1f)) // 🔥 vyplní zbytek výšky dynamicky
+
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = modifier.padding(horizontal = 16.dp)) {
                         Icon(
                             imageVector = Icons.Outlined.Event,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(16.dp),
                             tint = Color(0xFF1F1F1F)
                         )
-                        Spacer(Modifier.width(10.dp))
+                        Spacer(Modifier.width(GAP))
                         Text(
                             text = dateTime.format(dateFormatter),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFF2C2C2C),
                             maxLines = 1,
-                            softWrap = false,             // nezalamuj
+                            softWrap = false,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = modifier.padding(16.dp,0.dp, 16.dp, 16.dp)) {
+                        TagChip(type) // viz níže
+                    }
                 }
             }
+        }
+    }
+}
 
-            // 3) Rohový štítek
+// Malý komponent pro štítek v textové části
+@Composable
+private fun TagChip(type: ExaminationType) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = type.tagColor.copy(alpha = 0.5f), // jemné pozadí
+        border = BorderStroke(1.dp, type.tagColor),
+        tonalElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // malý tečkový indikátor v barvě typu (volitelné)
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
-                    .clip(RoundedCornerShape(topEnd = 24.dp, bottomStart = 24.dp))
+                    .size(8.dp)
+                    .clip(RoundedCornerShape(50))
                     .background(type.tagColor)
-                    .border(
-                        BorderStroke(2.dp, TagStroke),
-                        RoundedCornerShape(topEnd = 24.dp, bottomStart = 24.dp)
-                    )
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = type.label,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF1A1A1A)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = type.label,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFFFFFFFF)
                 )
-            }
+            )
         }
     }
 }
@@ -209,13 +229,14 @@ fun CustomExaminationRow(
 
 
 
-@Preview(showBackground = true, backgroundColor = 0xFFF2EEF2, widthDp = 380, heightDp = 160)
+
+@Preview(showBackground = true, backgroundColor = 0xFFF2EEF2, widthDp = 380, heightDp = 140)
 @Composable
 private fun PreviewCustomExaminationRow() {
     MaterialTheme(colorScheme = lightColorScheme()) {
         CustomExaminationRow(
             title = "Praktik",
-            subtitle = "Jdu preventivně",
+            subtitle = "Jdu preventivně a protože se fakt bojím tak nevím co s tím",
             dateTime = LocalDateTime.of(2025, 12, 25, 22, 22),
             type = ExaminationType.PROHLIDKA,
             iconRes = R.drawable.ic_launcher_foreground // nahraď svým assetem
