@@ -125,8 +125,8 @@ dependencies {
     implementation (libs.converter.gson)
 
     // Hilt testing
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+    androidTestImplementation(libs.hilt.android.testing)
+    kaptAndroidTest(libs.hilt.kapt)
 
     //  Timber
     implementation("com.jakewharton.timber:timber:5.0.1")

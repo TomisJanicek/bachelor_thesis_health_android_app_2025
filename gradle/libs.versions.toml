@@ -36,7 +36,7 @@ googlemap_compose = "19.2.0"
 googlemap_foundation = "1.9.4"
 
 
-room = "2.6.1"
+room = "2.8.3"
 lifecycle = "2.9.4"
 
 googlemap_utils = "3.19.0"
