@@ -43,21 +43,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cz.tomasjanicek.bp.R
+import cz.tomasjanicek.bp.ui.theme.TagGreen
+import cz.tomasjanicek.bp.ui.theme.TagOrange
+import cz.tomasjanicek.bp.ui.theme.TagYellow
+import cz.tomasjanicek.bp.ui.theme.tagPurple
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-// Barevná paleta z tvého UI (mírně upravené hex)
-private val Mint = Color(0xFFA8CCC4)         // hlavní
-private val my_primary = Color(0xFFE0B0B0)    // světlejší levý panel
-private val my_second = Color(0xFFA6D8BE)
-private val TagYellow = Color(0xFFFFEB3B)    // štítek "Prohlídka"
-private val TagStroke = Color(0xFF1A1A1A)
 
-enum class ExaminationType(val label: String, val tagColor: Color = TagYellow) {
-    PROHLIDKA("Prohlídka"),
-    ZAKROK("Zákrok", Color(0xFF6CFF6C)),
-    VYSETRENI("Vyšetření", Color(0xFFFF6B6B)),
-    ODBER_KRVE("Odběr krve", Color(0xFFFF8AC0))
+enum class ExaminationType(val label: String, val tagColor: Color) {
+    PROHLIDKA("Prohlídka", TagYellow),
+    ZAKROK("Zákrok", TagGreen),
+    VYSETRENI("Vyšetření", TagOrange),
+    ODBER_KRVE("Odběr krve", tagPurple)
 }
 
 enum class ExaminationStatus { PLANNED, COMPLETED, CANCELLED }
@@ -87,7 +85,7 @@ fun CustomExaminationRow(
         onClick = onClick,
         shape = cardShape,
         colors = CardDefaults.cardColors(
-            containerColor = my_second.copy(alpha = 0.5f) // <-- TADY JE ZMĚNA
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -105,9 +103,9 @@ fun CustomExaminationRow(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .aspectRatio(1f)
+                        .aspectRatio(0.5f)
                         .clip(cardShape)
-                        .background(my_second), // DEBUG podklad (klidně pak smaž)
+                        .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -127,7 +125,7 @@ fun CustomExaminationRow(
                         .fillMaxHeight()
                         .clip(cardShape)
                         .weight(1f)
-                        .background(my_second),
+                        .background(MaterialTheme.colorScheme.primary),
                     verticalArrangement = Arrangement.Top
                 ) {
                     // První řádek: Nadpis + štítek vpravo
@@ -143,7 +141,7 @@ fun CustomExaminationRow(
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.SemiBold
                             ),
-                            color = Color(0xFF222222),
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
@@ -156,7 +154,7 @@ fun CustomExaminationRow(
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color(0xFF4B4B4B),
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = modifier.padding(horizontal = 16.dp)
@@ -172,13 +170,13 @@ fun CustomExaminationRow(
                             imageVector = Icons.Outlined.Event,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = Color(0xFF1F1F1F)
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(Modifier.width(GAP))
                         Text(
                             text = dateTime.format(dateFormatter),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF2C2C2C),
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis
@@ -201,7 +199,8 @@ fun CustomExaminationRow(
 private fun TagChip(type: ExaminationType) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = type.tagColor.copy(alpha = 0.5f), // jemné pozadí
+        //color = type.tagColor.copy(alpha = 0.5f), // jemné pozadí
+        color = type.tagColor,
         border = BorderStroke(1.dp, type.tagColor),
         tonalElevation = 0.dp
     ) {
@@ -211,6 +210,7 @@ private fun TagChip(type: ExaminationType) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            /*
             // malý tečkový indikátor v barvě typu (volitelné)
             Box(
                 modifier = Modifier
@@ -219,11 +219,12 @@ private fun TagChip(type: ExaminationType) {
                     .background(type.tagColor)
             )
             Spacer(Modifier.width(6.dp))
+            */
             Text(
                 text = type.label,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF000000)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
