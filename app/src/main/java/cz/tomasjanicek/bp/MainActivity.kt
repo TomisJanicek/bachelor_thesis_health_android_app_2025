@@ -11,6 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import cz.tomasjanicek.bp.navigation.Destination
+import cz.tomasjanicek.bp.navigation.NavGraph
+import cz.tomasjanicek.bp.ui.screens.examination.ListOfExaminationView
 import cz.tomasjanicek.bp.ui.theme.BpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,29 +24,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BpTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                NavGraph(
+                    startDestination = Destination.ListOfExaminationView.route
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BpTheme {
-        Greeting("Android")
     }
 }

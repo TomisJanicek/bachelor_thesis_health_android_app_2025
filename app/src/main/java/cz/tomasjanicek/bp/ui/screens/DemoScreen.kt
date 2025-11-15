@@ -54,9 +54,9 @@ fun DemoScreen(
     val now = System.currentTimeMillis()
     val dayMs = 86_400_000L
     val data = remember {
-        (0..60).map { i ->
-            val t = now - (60 - i) * dayMs
-            val v = 120f + (Math.sin(i / 6.0) * 10 + Math.random() * 6).toFloat()
+        (0..66000).map { i ->
+            val t = now - (66000 - i) * dayMs
+            val v = 1200f + (Math.sin(i / 6.0) * 10 + Math.random() * 60).toFloat()
             ChartPoint(t, v)
         }
     }
@@ -305,29 +305,6 @@ private fun ItemRowDemo(item: Item) {
             Text(
                 text = "Tagy: ${item.tags.joinToString()}",
                 style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
-
-// ---------- Preview ----------
-
-@Preview(
-    name = "Line Chart + Filters Demo",
-    showBackground = true,
-    backgroundColor = 0xFFFDFDFD
-)
-@Composable
-fun PreviewLineChartDemo() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
-        Surface {
-            val mockRouter = object : INavigationRouter {
-                override fun navigateToDemoScreen() { }
-            }
-
-            DemoScreen(
-                navigationRouter = mockRouter,
-                currentScreenIndex = 0
             )
         }
     }

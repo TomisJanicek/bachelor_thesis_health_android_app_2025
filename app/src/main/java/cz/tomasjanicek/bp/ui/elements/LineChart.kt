@@ -76,12 +76,23 @@ fun PeriodSelector(
     onSelected: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     SingleChoiceSegmentedButtonRow(modifier) {
         ChartPeriod.values().forEachIndexed { index, period ->
             SegmentedButton(
                 selected = selected == period,
                 onClick = { onSelected(period) },
-                shape = SegmentedButtonDefaults.itemShape(index, ChartPeriod.values().size)
+                shape = SegmentedButtonDefaults.itemShape(index, ChartPeriod.values().size),
+                colors = SegmentedButtonDefaults.colors(
+                    // Barva pozadí pro VYBRANÉ tlačítko
+                    activeContainerColor = colors.secondary,
+                    // Barva textu a ikony pro VYBRANÉ tlačítko
+                    activeContentColor = colors.onPrimary,
+                    // Barva pozadí pro NEVYBRANÁ tlačítka
+                    inactiveContainerColor = colors.surface,
+                    // Barva textu a ikony pro NEVYBRANÁ tlačítka
+                    inactiveContentColor = colors.onSurface
+                )
             ) { Text(period.label) }
         }
     }
@@ -327,7 +338,9 @@ fun LineChartWithControlsDemo(
 
         PeriodSelector(
             selected = period,
-            onSelected = { period = it }
+            onSelected = { period = it
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(Modifier.height(8.dp))

@@ -50,7 +50,7 @@ import java.time.format.DateTimeFormatter
 private val Mint = Color(0xFFA8CCC4)         // hlavní
 private val my_primary = Color(0xFFE0B0B0)    // světlejší levý panel
 private val my_second = Color(0xFFA6D8BE)
-private val TagYellow = Color(0xFFE91E63)    // štítek "Prohlídka"
+private val TagYellow = Color(0xFFFFEB3B)    // štítek "Prohlídka"
 private val TagStroke = Color(0xFF1A1A1A)
 
 enum class ExaminationType(val label: String, val tagColor: Color = TagYellow) {
@@ -223,7 +223,7 @@ private fun TagChip(type: ExaminationType) {
                 text = type.label,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFFFFFFFF)
+                    color = Color(0xFF000000)
                 )
             )
         }
