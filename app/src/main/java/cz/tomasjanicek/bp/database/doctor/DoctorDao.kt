@@ -24,4 +24,9 @@ interface DoctorDao {
 
     @Query("DELETE FROM doctors")
     suspend fun deleteAll()
+
+    // --- PŘIDEJ TUTO METODU ---
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(doctors: List<Doctor>)
+    // --- KONEC PŘIDANÉ METODY ---
 }

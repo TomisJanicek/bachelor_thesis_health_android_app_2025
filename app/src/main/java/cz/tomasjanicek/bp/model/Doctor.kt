@@ -7,15 +7,15 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "doctors")
 data class Doctor(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "phone") val phone: String,
-    @ColumnInfo(name = "email") val email: String,
     @ColumnInfo(name = "specialization") val specialization: String,
-    @ColumnInfo(name = "image") val image: String,
-    @ColumnInfo(name = "description") var subtitle: String,
-    @ColumnInfo(name = "latitude") var latitude: Double?,
-    @ColumnInfo(name = "longitude") var longitude: Double?,
-    @ColumnInfo(name = "location") val location: String? = null, // např. "Třebíč Poliklinika"
+    @ColumnInfo(name = "name") val name: String? = null,
+    @ColumnInfo(name = "phone") val phone: String? = null,
+    @ColumnInfo(name = "email") val email: String? = null,
+    @ColumnInfo(name = "image") val image: String? = null,
+    @ColumnInfo(name = "description") var subtitle: String? = null,
+    @ColumnInfo(name = "latitude") var latitude: Double? = null,
+    @ColumnInfo(name = "longitude") var longitude: Double? = null,
+    @ColumnInfo(name = "location") val location: String? = null, // např. "Třebíč Poliklinika" Využít reverse geolocation
 
 
 )

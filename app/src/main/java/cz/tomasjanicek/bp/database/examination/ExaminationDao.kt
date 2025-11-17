@@ -3,9 +3,12 @@ package cz.tomasjanicek.bp.database.examination
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import cz.tomasjanicek.bp.model.Examination
+import cz.tomasjanicek.bp.model.ExaminationWithDoctor
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,5 +30,15 @@ interface ExaminationDao {
 
     @Query("DELETE FROM examinations")
     suspend fun deleteAll()
+
+    // --- PŘIDEJ TUTO METODU ---
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(examinations: List<Examination>)
+    // --- KONEC PŘIDANÉ METODY ---
+
+    @Transaction // Nezbytné pro relační dotazy!
+    @Query("SELECT * FROM examinations")
+    fun getAllWithDoctors(): Flow<List<ExaminationWithDoctor>>
+
 
 }

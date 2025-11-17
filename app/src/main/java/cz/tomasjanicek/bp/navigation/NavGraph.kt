@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cz.tomasjanicek.bp.ui.screens.DemoScreen
-import cz.tomasjanicek.bp.ui.screens.examination.ListOfExaminationView
+import cz.tomasjanicek.bp.ui.screens.examination.ListOfExaminationScreen
 
 @Composable
 fun NavGraph(
@@ -26,7 +26,7 @@ fun NavGraph(
         }
 
         composable(Destination.ListOfExaminationView.route) {
-            ListOfExaminationView(navigationRouter = navigationRouter, currentScreenIndex = 0)
+            ListOfExaminationScreen(navigationRouter = navigationRouter, currentScreenIndex = 0)
 
         }
     }

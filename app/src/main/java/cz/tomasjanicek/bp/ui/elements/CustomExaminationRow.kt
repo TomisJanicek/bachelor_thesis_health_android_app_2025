@@ -36,41 +36,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cz.tomasjanicek.bp.R
+import cz.tomasjanicek.bp.model.Examination
+import cz.tomasjanicek.bp.model.ExaminationType
+import cz.tomasjanicek.bp.model.ExaminationWithDoctor
 import cz.tomasjanicek.bp.ui.theme.TagGreen
 import cz.tomasjanicek.bp.ui.theme.TagOrange
 import cz.tomasjanicek.bp.ui.theme.TagYellow
 import cz.tomasjanicek.bp.ui.theme.tagPurple
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
-
-enum class ExaminationType(val label: String, val tagColor: Color) {
-    PROHLIDKA("Prohlídka", TagYellow),
-    ZAKROK("Zákrok", TagGreen),
-    VYSETRENI("Vyšetření", TagOrange),
-    ODBER_KRVE("Odběr krve", tagPurple)
-}
-
-enum class ExaminationStatus { PLANNED, COMPLETED, CANCELLED }
+import coil.compose.AsyncImage
+import cz.tomasjanicek.bp.model.Doctor // Doplň import
+import cz.tomasjanicek.bp.model.ExaminationStatus
+import java.time.Instant
+import java.time.ZoneId
 
 @Composable
 fun CustomExaminationRow(
-    title: String,
-    subtitle: String?,
-    dateTime: LocalDateTime,
-    type: ExaminationType,
-    status: ExaminationStatus = ExaminationStatus.PLANNED,
-    @DrawableRes iconRes: Int,
-    modifier: Modifier = Modifier,
-    height: Dp = 140.dp,
-    weight: Dp = 140.dp,
+    item: ExaminationWithDoctor,
     onClick: () -> Unit = {}
 ) {
     val radius = 28.dp
@@ -81,15 +73,26 @@ fun CustomExaminationRow(
     val LEFT_WEIGHT = 0.44f
     val GAP = 8.dp
 
+    val examination = item.examination
+    val doctor = item.doctor
+    val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(examination.dateTime), ZoneId.systemDefault())
+
+    // 3. KROK: Připravíme si styl pro přeškrtnutí, pokud je stav CANCELLED
+    val textStyle = if (examination.status == ExaminationStatus.CANCELLED) {
+        TextStyle(textDecoration = TextDecoration.LineThrough)
+    } else {
+        TextStyle()
+    }
+
     Card(
         onClick = onClick,
         shape = cardShape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         ),
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .height(height)
+            .height(140.dp)
     ) {
         Box(Modifier.fillMaxSize()) {
             // -------- 3 SLOUPCE --------
@@ -103,17 +106,28 @@ fun CustomExaminationRow(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .aspectRatio(0.5f)
+                        .aspectRatio(0.5f) // Zajistí čtvercový poměr
                         .clip(cardShape)
                         .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(iconRes),
-                        contentDescription = null,
-                        modifier = Modifier.matchParentSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    // 4. KROK: Zobrazíme obrázek doktora, nebo jeho iniciály
+                    if (!doctor.image.isNullOrBlank()) {
+                        // Pokud má doktor URL na obrázek, použijeme Coil k jeho zobrazení
+                        AsyncImage(
+                            model = doctor.image,
+                            contentDescription = "Fotografie lékaře: ${doctor.name}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        // Pokud obrázek nemá, zobrazíme první písmeno jeho jména
+                        Text(
+                            text = doctor.specialization?.firstOrNull()?.uppercase() ?: "?",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
 
                 // 2) MEZERA
@@ -136,11 +150,11 @@ fun CustomExaminationRow(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = title,
+                            text = doctor.specialization,
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                fontSize = 24.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold
-                            ),
+                            ).merge(textStyle), // <-- PŘIDÁNO ZDE
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -150,14 +164,14 @@ fun CustomExaminationRow(
 
                     }
 
-                    if (!subtitle.isNullOrBlank()) {
+                    if (!examination.purpose.isNullOrBlank()) {
                         Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = examination.purpose,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = modifier.padding(horizontal = 16.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
 
@@ -165,7 +179,7 @@ fun CustomExaminationRow(
                     Spacer(modifier = Modifier.weight(1f)) // 🔥 vyplní zbytek výšky dynamicky
 
                     Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = modifier.padding(horizontal = 16.dp)) {
+                        modifier = Modifier.padding(horizontal = 16.dp)) {
                         Icon(
                             imageVector = Icons.Outlined.Event,
                             contentDescription = null,
@@ -185,8 +199,8 @@ fun CustomExaminationRow(
                     Spacer(Modifier.height(8.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = modifier.padding(16.dp,0.dp, 16.dp, 16.dp)) {
-                        TagChip(type) // viz níže
+                        modifier = Modifier.padding(16.dp,0.dp, 16.dp, 16.dp)) {
+                        TagChip(examination.type) // viz níže
                     }
                 }
             }
@@ -194,57 +208,25 @@ fun CustomExaminationRow(
     }
 }
 
-// Malý komponent pro štítek v textové části
-@Composable
-private fun TagChip(type: ExaminationType) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        //color = type.tagColor.copy(alpha = 0.5f), // jemné pozadí
-        color = type.tagColor,
-        border = BorderStroke(1.dp, type.tagColor),
-        tonalElevation = 0.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            /*
-            // malý tečkový indikátor v barvě typu (volitelné)
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(type.tagColor)
-            )
-            Spacer(Modifier.width(6.dp))
-            */
-            Text(
-                text = type.label,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    }
-}
-
-
-
-
-
-@Preview(showBackground = true, backgroundColor = 0xFFF2EEF2, widthDp = 380, heightDp = 140)
+// 6. KROK: Opravíme i náhled, aby fungoval se správnými daty
+@Preview(showBackground = true, backgroundColor = 0xFFF2EEF2, widthDp = 380)
 @Composable
 private fun PreviewCustomExaminationRow() {
+    // Vytvoříme si falešná data pro náhled
+    val previewDoctor = Doctor(id = 1, name = "MUDr. Jan Novák", specialization = "Praktický lékař")
+    val previewExamination = Examination(id = 1, doctorId = 1, purpose = "Preventivní prohlídka", dateTime = System.currentTimeMillis(), type = ExaminationType.PROHLIDKA)
+    val previewItem = ExaminationWithDoctor(examination = previewExamination, doctor = previewDoctor)
+
     MaterialTheme(colorScheme = lightColorScheme()) {
-        CustomExaminationRow(
-            title = "Praktik neuronů",
-            subtitle = "Jdu preventivně a protože se fakt bojím tak nevím co s tím",
-            dateTime = LocalDateTime.of(2025, 12, 25, 22, 22),
-            type = ExaminationType.PROHLIDKA,
-            iconRes = R.drawable.ic_launcher_foreground // nahraď svým assetem
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(16.dp)) {
+            // Normální stav
+            CustomExaminationRow(item = previewItem)
+
+            // Přeškrtnutý stav (CANCELLED)
+            val cancelledItem = previewItem.copy(
+                examination = previewItem.examination.copy(status = ExaminationStatus.CANCELLED)
+            )
+            CustomExaminationRow(item = cancelledItem)
+        }
     }
 }

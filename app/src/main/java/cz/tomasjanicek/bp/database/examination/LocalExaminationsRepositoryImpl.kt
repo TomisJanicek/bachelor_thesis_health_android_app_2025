@@ -1,6 +1,7 @@
 package cz.tomasjanicek.bp.database.examination
 
 import cz.tomasjanicek.bp.model.Examination
+import cz.tomasjanicek.bp.model.ExaminationWithDoctor
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
@@ -23,4 +24,7 @@ class LocalExaminationsRepositoryImpl @Inject constructor(
 
     override suspend fun getExamination(id: Long): Examination =
         examinationDao.getExamination(id)
+
+    override fun getAllWithDoctors(): Flow<List<ExaminationWithDoctor>> =
+        examinationDao.getAllWithDoctors()
 }
