@@ -1,4 +1,5 @@
 [versions]
+accompanistSystemuicontroller = "0.34.0"
 agp = "8.13.0"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
@@ -60,6 +61,7 @@ material3 = "1.4.0"
 
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }

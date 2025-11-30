@@ -5,4 +5,7 @@ interface INavigationRouter {
     fun navigateToDemoScreen()
 
     fun navigaTetoListOfExaminationView()
+    fun navigateToAddEditExaminationScreen(id: Long?)
+
+    fun returBack()
 }

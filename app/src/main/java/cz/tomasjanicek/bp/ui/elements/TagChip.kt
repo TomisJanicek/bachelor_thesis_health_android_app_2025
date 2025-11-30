@@ -11,17 +11,28 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cz.tomasjanicek.bp.model.ExaminationType
+import cz.tomasjanicek.bp.ui.theme.getContrastingTextColor
 
 @Composable
 fun TagChip(type: ExaminationType) {
+    // 1. Zavoláme naši novou funkci, abychom určili správnou barvu textu.
+    val textColor = getContrastingTextColor(backgroundColor = type.tagColor)
+    // Můžeme i určit barvu rámečku pro lepší kontrast
+    val borderColor = getContrastingTextColor(
+        backgroundColor = type.tagColor,
+        lightColor = Color.White.copy(alpha = 0.5f),
+        darkColor = Color.Black.copy(alpha = 0.5f)
+    )
+
     Surface(
         shape = RoundedCornerShape(8.dp),
         //color = type.tagColor.copy(alpha = 0.5f), // jemné pozadí
         color = type.tagColor,
-        border = BorderStroke(1.dp, type.tagColor),
+        border = BorderStroke(1.dp, Color.Black),
         tonalElevation = 0.dp
     ) {
         Row(
@@ -44,7 +55,7 @@ fun TagChip(type: ExaminationType) {
                 text = type.label,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
             )
         }

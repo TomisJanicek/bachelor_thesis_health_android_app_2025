@@ -26,7 +26,13 @@ interface DoctorDao {
     suspend fun deleteAll()
 
     // --- PŘIDEJ TUTO METODU ---
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(doctors: List<Doctor>)
+    //@Insert(onConflict = OnConflictStrategy.IGNORE)
+    //suspend fun insertAll(doctors: List<Doctor>)
     // --- KONEC PŘIDANÉ METODY ---
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(doctors: List<Doctor>)
+
+    @Query("SELECT COUNT(*) FROM doctors")
+    suspend fun getCount(): Int
 }

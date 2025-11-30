@@ -1,4 +1,4 @@
-package cz.tomasjanicek.bp.ui.screens.examination
+package cz.tomasjanicek.bp.ui.screens.examination.list
 
 import cz.tomasjanicek.bp.model.ExaminationWithDoctor
 

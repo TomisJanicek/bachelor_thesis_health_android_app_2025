@@ -81,7 +81,7 @@ fun CustomBottomBar(
                 alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor   = MaterialTheme.colorScheme.onSurface,
-                    selectedTextColor   = MaterialTheme.colorScheme.secondary,
+                    selectedTextColor   = MaterialTheme.colorScheme.onSurface,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurface,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurface,
                     indicatorColor      = MaterialTheme.colorScheme.secondary

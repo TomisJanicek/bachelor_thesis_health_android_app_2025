@@ -25,8 +25,8 @@ import cz.tomasjanicek.bp.ui.theme.tagPurple
     indices = [Index("doctorId")]
 )
 data class Examination(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val doctorId: Long,
+    @PrimaryKey(autoGenerate = true) val id: Long? = 0,
+    val doctorId: Long?,
     val type: ExaminationType, // ENUM níže
     val purpose: String,       // např. "Jdu preventivně", "Bude mi trhat zub"
     val note: String? = null,  // poznámka z formuláře

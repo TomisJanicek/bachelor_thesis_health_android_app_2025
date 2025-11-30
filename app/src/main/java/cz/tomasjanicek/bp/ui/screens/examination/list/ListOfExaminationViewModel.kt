@@ -1,8 +1,8 @@
-package cz.tomasjanicek.bp.ui.screens.examination
+package cz.tomasjanicek.bp.ui.screens.examination.list
 
-import cz.tomasjanicek.bp.database.examination.ILocalExaminationsRepository
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import cz.tomasjanicek.bp.database.examination.ILocalExaminationsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +27,7 @@ class ListOfExaminationViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope, // Coroutine scope, ve kterém bude Flow aktivní
                 // Začne sbírat, když je UI viditelné, a přestane 5s poté, co zmizí (šetří zdroje)
-                started = SharingStarted.WhileSubscribed(5000),
+                started = SharingStarted.Companion.WhileSubscribed(5000),
                 // Počáteční hodnota, než dorazí první data z databáze
                 initialValue = ListOfExaminationUIState.Loading
             )

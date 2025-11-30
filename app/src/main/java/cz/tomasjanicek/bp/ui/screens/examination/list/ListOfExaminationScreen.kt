@@ -1,4 +1,4 @@
-package cz.tomasjanicek.bp.ui.screens.examination
+package cz.tomasjanicek.bp.ui.screens.examination.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,22 +37,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cz.tomasjanicek.bp.R
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
 import cz.tomasjanicek.bp.ui.elements.CustomExaminationRow
 import cz.tomasjanicek.bp.ui.theme.MyBlack
-import java.time.LocalDateTime
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.isEmpty
-import androidx.compose.ui.text.style.TextDecoration
-import cz.tomasjanicek.bp.model.Examination
 import cz.tomasjanicek.bp.model.ExaminationStatus // Importuj tvůj enum
 import cz.tomasjanicek.bp.model.ExaminationWithDoctor
+import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationUIState
+import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationViewModel
 import cz.tomasjanicek.bp.ui.theme.MyWhite
-import java.time.Instant
-import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,7 +114,7 @@ fun ListOfExaminationScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    //TODO(navigationRouter.navigateToAddEdit(null))
+                    navigationRouter.navigateToAddEditExaminationScreen(null)
                 },
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MyBlack
@@ -200,7 +195,7 @@ fun ListOfExaminationScreenContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            items(filteredExaminations, key = { it.examination.id }) { examination ->
+            items(filteredExaminations, key = { it.examination.id!! }) { examination ->
                 CustomExaminationRow(
                     item = examination,
                     onClick = {

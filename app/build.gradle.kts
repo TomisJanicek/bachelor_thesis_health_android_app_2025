@@ -162,6 +162,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
 
+    //Ovládání systému
+    implementation(libs.accompanist.systemuicontroller)
+
 }
 
 // For Hilt

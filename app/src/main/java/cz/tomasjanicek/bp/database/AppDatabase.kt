@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
         Doctor::class,
         Examination::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,40 +38,35 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "health_app_database"   // název si klidně uprav
+                    "health_app_database"
                 )
-                    // při vývoji je fajn destruktivní migrace,
-                    // do produkce ji můžeš později odstranit
                     .fallbackToDestructiveMigration()
-                    .addCallback(createCallback(context))
                     .build()
+
                 INSTANCE = instance
+
+                // 💡 po vytvoření instance zkusíme naplnit sample daty
+                CoroutineScope(Dispatchers.IO).launch {
+                    prepopulateIfEmpty(instance)
+                }
+
                 instance
             }
         }
-        // --- ZDE ZAČÍNÁ NOVÝ KÓD ---
-        /**
-         * Vytvoří a vrátí callback, který naplní databázi při jejím prvním vytvoření.
-         */
-        private fun createCallback(context: Context): Callback {
-            return object : RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    // onCreate se volá pouze jednou. Spustíme vkládání v coroutine.
-                    CoroutineScope(Dispatchers.IO).launch {
-                        // Získáme DAO instance přes existující INSTANCE
-                        getDatabase(context).let { database ->
-                            val doctorDao = database.doctorDao()
-                            val examinationDao = database.examinationDao()
 
-                            // Vložíme ukázková data
-                            doctorDao.insertAll(sampleDoctors)
-                            examinationDao.insertAll(sampleExaminations)
-                        }
-                    }
-                }
+        /**
+         * Naplní databázi ukázkovými daty, pokud je prázdná.
+         */
+        private suspend fun prepopulateIfEmpty(database: AppDatabase) {
+            val doctorDao = database.doctorDao()
+            val examinationDao = database.examinationDao()
+
+            // 👉 pokud v tabulce doktorů nic není, považujeme DB za prázdnou
+            val count = doctorDao.getCount()
+            if (count == 0) {
+                doctorDao.insertAll(sampleDoctors)
+                examinationDao.insertAll(sampleExaminations)
             }
         }
-        // --- ZDE KONČÍ NOVÝ KÓD ---
     }
 }
