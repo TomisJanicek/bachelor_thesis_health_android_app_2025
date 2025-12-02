@@ -20,7 +20,7 @@ interface DoctorDao {
     suspend fun delete(doctor: Doctor)
 
     @Query("SELECT * FROM doctors WHERE id = :id")
-    suspend fun getDoctor(id: Long): Doctor?
+    suspend fun getDoctor(id: Long?): Doctor?
 
     @Query("DELETE FROM doctors")
     suspend fun deleteAll()
@@ -35,4 +35,10 @@ interface DoctorDao {
 
     @Query("SELECT COUNT(*) FROM doctors")
     suspend fun getCount(): Int
+
+    // --- PŘIDEJTE TUTO NOVOU METODU ---
+    @Transaction
+    @Query("SELECT * FROM doctors WHERE id = :doctorId")
+    fun getDoctorWithData(doctorId: Long): Flow<Doctor?>
+    // --- KONEC NOVÉ METODY ---
 }

@@ -10,7 +10,7 @@ import androidx.room.Relation
 import cz.tomasjanicek.bp.ui.theme.TagGreen
 import cz.tomasjanicek.bp.ui.theme.TagOrange
 import cz.tomasjanicek.bp.ui.theme.TagYellow
-import cz.tomasjanicek.bp.ui.theme.tagPurple
+import cz.tomasjanicek.bp.ui.theme.TagPurple
 
 @Entity(
     tableName = "examinations",
@@ -38,11 +38,11 @@ enum class ExaminationType(val label: String, val tagColor: Color) {
     PROHLIDKA("Prohlídka", TagYellow),
     ZAKROK("Zákrok", TagGreen),
     VYSETRENI("Vyšetření", TagOrange),
-    ODBER_KRVE("Odběr krve", tagPurple)
+    ODBER_KRVE("Odběr krve", TagPurple)
 }
 
 enum class ExaminationStatus {
-    PLANNED, COMPLETED, CANCELLED
+    PLANNED, COMPLETED, CANCELLED, OVERDUE
 }
 
 data class ExaminationWithDoctor(
@@ -53,5 +53,5 @@ data class ExaminationWithDoctor(
         parentColumn = "doctorId", // Sloupec v 'examinations' tabulce
         entityColumn = "id"        // Sloupec v 'doctors' tabulce
     )
-    val doctor: Doctor
+    val doctor: Doctor?
 )

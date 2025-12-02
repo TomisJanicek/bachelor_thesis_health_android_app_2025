@@ -45,6 +45,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import cz.tomasjanicek.bp.model.ExaminationStatus // Importuj tvůj enum
 import cz.tomasjanicek.bp.model.ExaminationWithDoctor
+import cz.tomasjanicek.bp.ui.elements.StatusSelector
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationUIState
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationViewModel
 import cz.tomasjanicek.bp.ui.theme.MyWhite
@@ -199,7 +200,12 @@ fun ListOfExaminationScreenContent(
                 CustomExaminationRow(
                     item = examination,
                     onClick = {
-                        // navigationRouter.navigateToExaminationDetail(item.examination.id)
+                        // 1. Bezpečně získáme ID lékaře. Pokud lékař neexistuje (nemělo by se stát), nic se nestane.
+                        val doctorId = examination.doctor?.id
+                        if (doctorId != null) {
+                            // 2. Zavoláme navigaci s ID lékaře
+                            navigationRouter.navigateToExaminationDetail(doctorId)
+                        }
                     }
                 )
             }
@@ -214,37 +220,4 @@ fun ListOfExaminationScreenContent(
 enum class ExaminationFilterType(val label: String) {
     SCHEDULED("Naplánované"),
     HISTORY("Historie")
-}
-
-@Composable
-fun StatusSelector(
-    selectedFilter: ExaminationFilterType, // Změna
-    onFilterSelected: (ExaminationFilterType) -> Unit, // Změna
-    modifier: Modifier = Modifier
-) {
-    val colors = MaterialTheme.colorScheme
-    SingleChoiceSegmentedButtonRow(modifier) {
-        // Použijeme náš nový enum pro UI
-        ExaminationFilterType.values().forEachIndexed { index, filterType ->
-            SegmentedButton(
-                selected = selectedFilter == filterType,
-                onClick = { onFilterSelected(filterType) },
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = ExaminationFilterType.values().size
-                ),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = colors.secondary,
-                    activeContentColor = colors.onPrimary,
-                    activeBorderColor = MyBlack,
-
-                    inactiveContainerColor = MyWhite,
-                    inactiveContentColor = MyBlack,
-                    inactiveBorderColor = MyBlack
-                )
-            ) {
-                Text(filterType.label)
-            }
-        }
-    }
 }

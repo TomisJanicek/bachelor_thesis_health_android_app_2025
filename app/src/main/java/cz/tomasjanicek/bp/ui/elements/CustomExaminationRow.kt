@@ -1,5 +1,6 @@
 package cz.tomasjanicek.bp.ui.elements
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material.icons.Icons
@@ -24,10 +26,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -43,6 +48,8 @@ import java.time.format.DateTimeFormatter
 import coil.compose.AsyncImage
 import cz.tomasjanicek.bp.model.Doctor // Doplň import
 import cz.tomasjanicek.bp.model.ExaminationStatus
+import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.utils.DateUtils
 import java.time.Instant
 import java.time.ZoneId
 
@@ -51,168 +58,140 @@ fun CustomExaminationRow(
     item: ExaminationWithDoctor,
     onClick: () -> Unit = {}
 ) {
-    val radius = 28.dp
-    val cardShape = RoundedCornerShape(radius)
-    val dateFormatter = DateTimeFormatter.ofPattern("d. M. yyyy - HH:mm")
-
-    // 3-sloupcové rozvržení
-    val LEFT_WEIGHT = 0.44f
-    val GAP = 8.dp
-
     val examination = item.examination
     val doctor = item.doctor
     val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(examination.dateTime), ZoneId.systemDefault())
-
-    // 3. KROK: Připravíme si styl pro přeškrtnutí, pokud je stav CANCELLED
-    val textStyle = if (examination.status == ExaminationStatus.CANCELLED) {
-        TextStyle(textDecoration = TextDecoration.LineThrough)
-    } else {
-        TextStyle()
-    }
-
     Card(
         onClick = onClick,
-        shape = cardShape,
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
         ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(140.dp)
+        modifier = Modifier.height(112.dp)
     ) {
-        Box(Modifier.fillMaxSize()) {
-            // -------- 3 SLOUPCE --------
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 0.dp, vertical = 0.dp),
-                verticalAlignment = Alignment.Top
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 1) AVATAR (kolečko)
+            DoctorAvatar(doctor = doctor)
+
+            Spacer(Modifier.width(16.dp))
+
+            // 2) TEXTOVÁ ČÁST
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
             ) {
-                // 1) OBRÁZEK – čtverec se stejným rádiusem jako karta
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(0.5f) // Zajistí čtvercový poměr
-                        .clip(cardShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
+                // Horní řádek: Specializace a Datum
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // 4. KROK: Zobrazíme obrázek doktora, nebo jeho iniciály
-                    if (!doctor.image.isNullOrBlank()) {
-                        // Pokud má doktor URL na obrázek, použijeme Coil k jeho zobrazení
-                        AsyncImage(
-                            model = doctor.image,
-                            contentDescription = "Fotografie lékaře: ${doctor.name}",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        // Pokud obrázek nemá, zobrazíme první písmeno jeho jména
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = doctor.specialization?.firstOrNull()?.uppercase() ?: "?",
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = doctor?.specialization ?: "Neznámá specializace",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier,
+                            textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
                         )
+
+                        if (!examination.purpose.isNullOrBlank()) {
+                            Text(
+                                text = examination.purpose,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier,
+                                textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
+                            )
+                        }
                     }
                 }
 
-                // 2) MEZERA
-                Spacer(Modifier.width(GAP))
+                Spacer(modifier = Modifier.weight(1f)) // Dynamická mezera
 
-                // 3) TEXTY + ŠTÍTEK
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .clip(cardShape)
-                        .weight(1f)
-                        .background(MaterialTheme.colorScheme.primary),
-                    verticalArrangement = Arrangement.Top
+                // Spodní řádek: Ikona, datum a štítek
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // První řádek: Nadpis + štítek vpravo
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp, 16.dp, 16.dp, 0.dp),
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = doctor.specialization,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold
-                            ).merge(textStyle), // <-- PŘIDÁNO ZDE
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(8.dp))
-
-                    }
-
-                    if (!examination.purpose.isNullOrBlank()) {
-                        Text(
-                            text = examination.purpose,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-
-
-                    Spacer(modifier = Modifier.weight(1f)) // 🔥 vyplní zbytek výšky dynamicky
-
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp)) {
                         Icon(
                             imageVector = Icons.Outlined.Event,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurface,
+                            contentDescription = "Datum",
+                            modifier = Modifier.size(20.dp),
+                            tint = MyBlack
                         )
-                        Spacer(Modifier.width(GAP))
+                        Spacer(Modifier.width(4.dp))
                         Text(
-                            text = dateTime.format(dateFormatter),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            text = DateUtils.getDateTimeString(examination.dateTime),                           style = MaterialTheme.typography.bodyMedium,
+                            color = MyBlack,
                             maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(16.dp,0.dp, 16.dp, 16.dp)) {
-                        TagChip(examination.type) // viz níže
-                    }
+                    TagChip(examination.type)
                 }
             }
         }
     }
 }
 
-// 6. KROK: Opravíme i náhled, aby fungoval se správnými daty
-@Preview(showBackground = true, backgroundColor = 0xFFF2EEF2, widthDp = 380)
 @Composable
-private fun PreviewCustomExaminationRow() {
-    // Vytvoříme si falešná data pro náhled
-    val previewDoctor = Doctor(id = 1, name = "MUDr. Jan Novák", specialization = "Praktický lékař")
-    val previewExamination = Examination(id = 1, doctorId = 1, purpose = "Preventivní prohlídka", dateTime = System.currentTimeMillis(), type = ExaminationType.PROHLIDKA)
-    val previewItem = ExaminationWithDoctor(examination = previewExamination, doctor = previewDoctor)
+fun DoctorAvatar(doctor: Doctor?) {
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center
+    ) {
+        val imageName = doctor?.image
 
-    MaterialTheme(colorScheme = lightColorScheme()) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(16.dp)) {
-            // Normální stav
-            CustomExaminationRow(item = previewItem)
+        if (!imageName.isNullOrBlank()) {
+            val context = LocalContext.current
+            // Převedeme název obrázku (String) na jeho ID (Int)
+            val imageResId = remember(imageName) {
+                context.resources.getIdentifier(imageName, "drawable", context.packageName)
+            }
 
-            // Přeškrtnutý stav (CANCELLED)
-            val cancelledItem = previewItem.copy(
-                examination = previewItem.examination.copy(status = ExaminationStatus.CANCELLED)
-            )
-            CustomExaminationRow(item = cancelledItem)
+            // Pokud bylo ID úspěšně nalezeno, zobrazíme obrázek
+            if (imageResId != 0) {
+                Image(
+                    painter = painterResource(id = imageResId),
+                    contentDescription = "Fotografie lékaře: ${doctor.name}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Pojistka: Pokud obrázek v drawable chybí, zobrazíme iniciálu
+                AvatarInitial(doctor = doctor)
+            }
+        } else {
+            // Pokud v datech není žádný obrázek, zobrazíme iniciálu
+            AvatarInitial(doctor = doctor)
         }
     }
+}
+
+// Vytvoříme pomocnou komponentu pro zobrazení iniciály, abychom se neopakovali
+@Composable
+private fun AvatarInitial(doctor: Doctor?) {
+    Text(
+        text = doctor?.specialization?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        style = MaterialTheme.typography.headlineSmall,
+        color = MyBlack
+    )
 }

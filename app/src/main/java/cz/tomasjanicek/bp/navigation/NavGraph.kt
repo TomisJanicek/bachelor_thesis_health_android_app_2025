@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cz.tomasjanicek.bp.ui.screens.DemoScreen
 import cz.tomasjanicek.bp.ui.screens.examination.addEdit.AddEditExaminationScreen
+import cz.tomasjanicek.bp.ui.screens.examination.detail.DetailOfExaminationScreen
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationScreen
 
 @Composable
@@ -46,6 +47,12 @@ fun NavGraph(
             val id = it.arguments?.getLong("id")
             AddEditExaminationScreen(navigationRouter = navigationRouter, id = id)
 
+        }
+        composable(
+            route = Destination.DetailOfExaminationScreen.route + "/{id}",
+            arguments = listOf(navArgument("id") {type = NavType.LongType})) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: -1L
+            DetailOfExaminationScreen(navigationRouter = navigationRouter, doctorId = id)
         }
     }
 }

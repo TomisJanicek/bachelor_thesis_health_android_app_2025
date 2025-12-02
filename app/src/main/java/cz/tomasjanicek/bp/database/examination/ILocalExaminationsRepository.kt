@@ -16,4 +16,9 @@ interface ILocalExaminationsRepository {
     suspend fun getExamination(id: Long): Examination
 
     fun getAllWithDoctors(): Flow<List<ExaminationWithDoctor>>
+
+    suspend fun getExaminationsByDoctor(doctorId: Long): List<Examination> // <-- PŘIDAT TENTO ŘÁDEK
+
+    // --- PŘIDEJTE TENTO ŘÁDEK ---
+    fun getExaminationWithDoctorById(id: Long): Flow<ExaminationWithDoctor?>
 }

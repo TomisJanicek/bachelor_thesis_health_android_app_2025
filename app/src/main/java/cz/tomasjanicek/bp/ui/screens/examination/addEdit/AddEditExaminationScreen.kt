@@ -1,6 +1,7 @@
 package cz.tomasjanicek.bp.ui.screens.examination.addEdit
 
 import android.text.format.DateUtils.formatDateTime
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.layout.Arrangement
@@ -18,16 +19,20 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -35,6 +40,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerColors
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -61,6 +68,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.tomasjanicek.bp.model.ExaminationType
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.utils.DateUtils
 import java.text.SimpleDateFormat
@@ -171,7 +179,7 @@ fun AddEditExaminationContent(
     modifier: Modifier = Modifier,
     data: AddEditExaminationData,
     actions: AddEditExaminationAction
-){
+) {
     // 1. Stavy pro zobrazení/skrytí dialogových oken
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -183,8 +191,10 @@ fun AddEditExaminationContent(
         initialSelectedDateMillis = data.examination.dateTime
     )
     val timePickerState = rememberTimePickerState(
-        initialHour = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }.get(Calendar.HOUR_OF_DAY),
-        initialMinute = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }.get(Calendar.MINUTE),
+        initialHour = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }
+            .get(Calendar.HOUR_OF_DAY),
+        initialMinute = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }
+            .get(Calendar.MINUTE),
         is24Hour = true
     )
 
@@ -204,7 +214,8 @@ fun AddEditExaminationContent(
             )
         }
         item {
-            val selectedDoctorName = data.doctors.find { it.id == data.examination.doctorId }?.specialization ?: ""
+            val selectedDoctorName =
+                data.doctors.find { it.id == data.examination.doctorId }?.specialization ?: ""
             ExposedDropdownMenuBox(
                 expanded = doctorMenuExpanded,
                 onExpandedChange = { doctorMenuExpanded = !doctorMenuExpanded }
@@ -217,19 +228,54 @@ fun AddEditExaminationContent(
                     placeholder = { Text("Vyberte lékaře") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = doctorMenuExpanded) },
                     isError = data.doctorError != null,
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor( // <-- Nové, správné volání
+                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                            enabled = true // Pole je aktivní pro rozbalení menu
+                        ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        // --- Normální stav (není vybráno, není chyba) ---
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                        // --- Stav, když je pole vybráno (kliknuto) ---
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = doctorMenuExpanded,
-                    onDismissRequest = { doctorMenuExpanded = false }
+                    onDismissRequest = { doctorMenuExpanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.onBackground) // Nebo jakákoliv jiná barva
                 ) {
                     data.doctors.forEach { doctor ->
                         DropdownMenuItem(
-                            text = { Text(doctor.specialization ?: "Neznámý lékař") },
+                            // Zobrazíme jméno i specializaci
+                            text = { Text("${doctor.name} (${doctor.specialization})") },
                             onClick = {
                                 actions.onDoctorChanged(doctor.id)
                                 doctorMenuExpanded = false
-                            }
+                            },
+
+                            // ZDE SE NASTAVUJÍ BARVY PRO POLOŽKU V MENU
+
+                            colors = MenuDefaults.itemColors(
+                                // Barva textu položky
+                                textColor = MaterialTheme.colorScheme.onSurface,
+                                // Barva ikony na začátku (pokud by byla)
+                                leadingIconColor = MaterialTheme.colorScheme.onSurface,
+                                // Barva ikony na konci (pokud by byla)
+                                trailingIconColor = MaterialTheme.colorScheme.onSurface,
+                                // Barva pro neaktivní (disabled) položku
+                                disabledTextColor = Color.Gray
+                            )
                         )
                     }
                 }
@@ -252,11 +298,30 @@ fun AddEditExaminationContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor() // Důležité pro správné umístění menu
+                        .menuAnchor( // <-- Nové, správné volání
+                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                            enabled = true // Pole je aktivní pro rozbalení menu
+                        ), // Důležité pro správné umístění menu
+                    colors = OutlinedTextFieldDefaults.colors(
+                        // --- Normální stav (není vybráno, není chyba) ---
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                        // --- Stav, když je pole vybráno (kliknuto) ---
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = typeMenuExpanded,
-                    onDismissRequest = { typeMenuExpanded = false }
+                    onDismissRequest = { typeMenuExpanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.onBackground) // Nebo jakákoliv jiná barva
                 ) {
                     ExaminationType.values().forEach { type ->
                         DropdownMenuItem(
@@ -281,14 +346,16 @@ fun AddEditExaminationContent(
                 leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Datum") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showDatePicker = true },
+                    .clickable { showDatePicker = true }
+                    .background(MaterialTheme.colorScheme.onBackground),
+
                 readOnly = true,
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledBorderColor = MaterialTheme.colorScheme.outline,
-                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledBorderColor = MaterialTheme.colorScheme.onSurface,
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface,
                 )
             )
         }
@@ -309,16 +376,51 @@ fun AddEditExaminationContent(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                    showTimePicker = true
-                }) { Text("Vybrat čas") }
+                TextButton(
+                    onClick = {
+                        showDatePicker = false
+                        showTimePicker = true
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
+                ) { Text("Vybrat čas") }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Zrušit") }
-            }
+                TextButton(
+                    onClick = { showDatePicker = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
+                )
+                { Text("Zrušit") }
+            },
+            colors = DatePickerDefaults.colors(
+                // 1. Nastavíme barvu pozadí dialogu na černou
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                // 3. Nezapomeňte nastavit barvy i pro vnitřní DatePicker!
+                colors = DatePickerDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.primary, // Pozadí samotného kalendáře
+                    titleContentColor = MyBlack,
+                    headlineContentColor = MyBlack,
+                    weekdayContentColor = MyBlack,
+                    subheadContentColor = MyBlack,
+                    dayContentColor = MyBlack,
+                    disabledDayContentColor = MyBlack.copy(alpha = 0.38f),
+                    disabledSelectedDayContentColor = MyBlack.copy(alpha = 0.38f),
+                    selectedDayContentColor = MyBlack,
+                    selectedDayContainerColor = MaterialTheme.colorScheme.secondary,
+                    todayContentColor = MyBlack,
+                    todayDateBorderColor = MaterialTheme.colorScheme.secondary,
+                    dividerColor = MyBlack.copy(alpha = 0.5f),
+                    yearContentColor = MyBlack,
+                    navigationContentColor = MyBlack,
+                    selectedYearContentColor = MyBlack,
+                    currentYearContentColor = MyBlack,
+
+
+                    )
+            )
         }
     }
 
@@ -330,7 +432,8 @@ fun AddEditExaminationContent(
                     onClick = {
                         showTimePicker = false
                         val selectedDate = Calendar.getInstance().apply {
-                            timeInMillis = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
+                            timeInMillis =
+                                datePickerState.selectedDateMillis ?: System.currentTimeMillis()
                         }
                         selectedDate.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
                         selectedDate.set(Calendar.MINUTE, timePickerState.minute)
@@ -342,7 +445,25 @@ fun AddEditExaminationContent(
                 TextButton(onClick = { showTimePicker = false }) { Text("Zrušit") }
             }
         ) {
-            TimePicker(state = timePickerState)
+            TimePicker(
+                state = timePickerState,
+                colors = TimePickerDefaults.colors(
+                    clockDialColor = MyPink,
+                    clockDialSelectedContentColor = MyPink,
+                    clockDialUnselectedContentColor = MyPink,
+                    selectorColor = MyPink,
+                    containerColor = MyPink,
+                    //periodSelectorBorderColor = MyPink,
+                    //periodSelectorSelectedContainerColor = MyPink,
+                    //periodSelectorUnselectedContainerColor = MyPink,
+                    //periodSelectorSelectedContentColor = MyPink,
+                    //periodSelectorUnselectedContentColor = MyPink,
+                    //timeSelectorSelectedContainerColor = MyPink,
+                    timeSelectorUnselectedContainerColor = MyPink,
+                    timeSelectorSelectedContentColor = MyPink,
+                    timeSelectorUnselectedContentColor = MyPink,
+                )
+            )
         }
     }
 }
@@ -361,7 +482,11 @@ private fun CustomTimePickerDialog(
                 Box(Modifier.padding(top = 24.dp, bottom = 12.dp)) {
                     content() // Zde je TimePicker
                 }
-                Row(Modifier.fillMaxWidth().padding(bottom = 8.dp, end = 6.dp), horizontalArrangement = Arrangement.End) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp, end = 6.dp), horizontalArrangement = Arrangement.End
+                ) {
                     dismissButton()
                     confirmButton()
                 }

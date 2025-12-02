@@ -12,5 +12,7 @@ interface ILocalDoctorsRepository {
 
     suspend fun delete(doctor: Doctor)
 
-    suspend fun getDoctor(id: Long): Doctor?
+    suspend fun getDoctor(id: Long?): Doctor?
+
+    fun getDoctorWithData(doctorId: Long): Flow<Doctor?>
 }

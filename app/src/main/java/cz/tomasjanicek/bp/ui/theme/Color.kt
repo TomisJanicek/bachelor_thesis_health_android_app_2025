@@ -17,12 +17,16 @@ val MyPink  = Color(0xFFE0B0B0)   // růžový indikátor
 val MyBlack = Color(0xFF000000)   // černý text/ikona
 val MyWhite = Color(0xFFFFFFFF)   // bílý text/ikona
 
+val MyRed = Color(0xFFD50000)
+
 //Tags - pastelové barvy
 val TagYellow = Color(0xFFFFD600)
 val TagGreen = Color(0xFF64DD17)
 val TagOrange = Color(0xFFDD2C00)
-val tagPurple = Color(0xFF6200EA)
+val TagPurple = Color(0xFF6200EA)
 val TagStroke = Color(0xFF1A1A1A)
+
+
 
 
 

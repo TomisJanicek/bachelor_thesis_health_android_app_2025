@@ -19,6 +19,10 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
         }
     }
 
+    override fun navigateToExaminationDetail(id: Long?) {
+        navController.navigate(Destination.DetailOfExaminationScreen.route + "/$id")
+    }
+
     override fun returBack() {
         navController.popBackStack()
     }

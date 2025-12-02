@@ -18,6 +18,8 @@ object DateUtils {
     private const val CZECH_DATETIME_FORMAT = "d. M. yyyy HH:mm"
     private const val ENGLISH_DATETIME_FORMAT = "yyyy/MM/dd HH:mm"
 
+    private const val TIME_FORMAT = "HH:mm"
+
     /**
      * Vrátí naformátovaný řetězec obsahující POUZE datum.
      * @param date Timestamp v milisekundách.
@@ -33,6 +35,20 @@ object DateUtils {
         } else {
             SimpleDateFormat(ENGLISH_DATE_FORMAT, Locale.ENGLISH)
         }
+        return formatter.format(calendar.time)
+    }
+
+    /**
+     * Vrátí naformátovaný řetězec obsahující POUZE čas.
+     * @param date Timestamp v milisekundách.
+     * @return Naformátovaný čas (např. "14:30").
+     */
+    fun getTimeString(date: Long): String {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = date
+
+        // Formát času je pro většinu lokalit stejný, není potřeba rozlišovat jazyk
+        val formatter = SimpleDateFormat(TIME_FORMAT, Locale.forLanguageTag("cs-CZ"))
         return formatter.format(calendar.time)
     }
 

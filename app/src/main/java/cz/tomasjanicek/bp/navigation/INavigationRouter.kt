@@ -6,6 +6,7 @@ interface INavigationRouter {
 
     fun navigaTetoListOfExaminationView()
     fun navigateToAddEditExaminationScreen(id: Long?)
+    fun navigateToExaminationDetail(id: Long?)
 
     fun returBack()
 }

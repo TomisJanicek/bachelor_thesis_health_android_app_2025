@@ -40,5 +40,15 @@ interface ExaminationDao {
     @Query("SELECT * FROM examinations")
     fun getAllWithDoctors(): Flow<List<ExaminationWithDoctor>>
 
+    @Query("SELECT * FROM examinations WHERE doctorId = :doctorId ORDER BY dateTime DESC")
+    suspend fun getExaminationsByDoctor(doctorId: Long): List<Examination> // <-- PŘIDAT TUTO METODU
 
+    /**
+     * Načte jedno konkrétní vyšetření podle jeho ID a rovnou k němu
+     * pomocí relace připojí odpovídající objekt doktora.
+     * Anotace @Transaction je zde naprosto klíčová.
+     */
+    @Transaction
+    @Query("SELECT * FROM examinations WHERE id = :examinationId")
+    fun getExaminationWithDoctorById(examinationId: Long): Flow<ExaminationWithDoctor?>
 }

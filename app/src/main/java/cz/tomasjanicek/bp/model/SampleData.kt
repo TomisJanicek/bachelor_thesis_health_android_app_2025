@@ -17,8 +17,8 @@ val sampleDoctors = listOf(
         location = "Fakultní nemocnice Brno",
         subtitle = "Vedoucí lékařka oddělení. Více než 20 let praxe.",
         latitude = 49.1920,
-        longitude = 16.6096
-        // 'image' je null, protože není specifikován
+        longitude = 16.6096,
+        image = null
     ),
 
     // 2. Doktor jen s povinnými a základními kontaktními údaji
@@ -26,9 +26,10 @@ val sampleDoctors = listOf(
         id = 2,
         name = "MUDr. Petr Novotný",
         specialization = "Praktický lékař",
-        phone = "+420 777 888 999",
-        location = "Poliklinika Vltava, Praha 4"
-        // 'email', 'subtitle', 'image', 'latitude', 'longitude' jsou null
+        phone = "+420 777 888 998",
+        location = "Poliklinika Vltava, Praha 4",
+        image = "prakticky_lekar"
+        // 'email', 'subtitle', 'latitude', 'longitude' jsou null
     ),
 
     // 3. Doktorka bez telefonního čísla, ale s emailem

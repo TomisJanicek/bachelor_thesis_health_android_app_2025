@@ -6,6 +6,9 @@ sealed class Destination(val route: String) {
 
     object AddEditExaminationScreen : Destination("add_edit_examination_screen")
 
+    object DetailOfExaminationScreen : Destination("detail_of_examination_screen")
+
+
 
 
 }

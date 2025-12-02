@@ -27,4 +27,12 @@ class LocalExaminationsRepositoryImpl @Inject constructor(
 
     override fun getAllWithDoctors(): Flow<List<ExaminationWithDoctor>> =
         examinationDao.getAllWithDoctors()
+
+    override suspend fun getExaminationsByDoctor(doctorId: Long): List<Examination> {
+        return examinationDao.getExaminationsByDoctor(doctorId)
+    }
+
+    override fun getExaminationWithDoctorById(id: Long): Flow<ExaminationWithDoctor?> {
+        return examinationDao.getExaminationWithDoctorById(id)
+    }
 }

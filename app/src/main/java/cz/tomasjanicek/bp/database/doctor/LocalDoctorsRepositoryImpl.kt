@@ -21,6 +21,10 @@ class LocalDoctorsRepositoryImpl @Inject constructor(
         doctorDao.delete(doctor)
     }
 
-    override suspend fun getDoctor(id: Long): Doctor? =
+    override suspend fun getDoctor(id: Long?): Doctor? =
         doctorDao.getDoctor(id)
+
+    override fun getDoctorWithData(doctorId: Long): Flow<Doctor?> {
+        return doctorDao.getDoctorWithData(doctorId)
+    }
 }
