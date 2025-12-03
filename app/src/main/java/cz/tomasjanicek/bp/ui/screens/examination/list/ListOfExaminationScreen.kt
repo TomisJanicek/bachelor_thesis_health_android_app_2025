@@ -151,9 +151,10 @@ fun ListOfExaminationScreen(
                 }
 
                 is ListOfExaminationUIState.Success -> {
-                    // Stav úspěchu - máme data, tak je zobrazíme
+                    // ZMĚNA: Předáváme oba seznamy do content funkce
                     ListOfExaminationScreenContent(
-                        examinations = currentState.examinationList,
+                        scheduledExaminations = currentState.scheduledExaminations,
+                        historyExaminations = currentState.historyExaminations,
                         selectedFilter = selectedFilter,
                         navigationRouter = navigationRouter
                     )
@@ -165,26 +166,20 @@ fun ListOfExaminationScreen(
 
 @Composable
 fun ListOfExaminationScreenContent(
-    examinations: List<ExaminationWithDoctor>,
-    selectedFilter: ExaminationFilterType, // Změna zde
+    // ZMĚNA: Přijímáme již připravené seznamy
+    scheduledExaminations: List<ExaminationWithDoctor>,
+    historyExaminations: List<ExaminationWithDoctor>,
+    selectedFilter: ExaminationFilterType,
     navigationRouter: INavigationRouter
-){
-    // 3. FILTROVÁNÍ DAT PODLE VYBRANÉHO STAVU
-    val filteredExaminations = remember(examinations, selectedFilter) {
-        val allSorted = examinations.sortedByDescending { it.examination.dateTime }
-        when (selectedFilter) {
-            ExaminationFilterType.SCHEDULED ->
-                allSorted.filter { it.examination.status == ExaminationStatus.PLANNED }
-            ExaminationFilterType.HISTORY ->
-                allSorted.filter {
-                    it.examination.status == ExaminationStatus.COMPLETED ||
-                            it.examination.status == ExaminationStatus.CANCELLED
-                }
-        }
+) {
+    // 1. ZMĚNA: Žádné další filtrování a řazení zde. Jen si vybereme správný seznam.
+    val examinationsToShow = when (selectedFilter) {
+        ExaminationFilterType.SCHEDULED -> scheduledExaminations
+        ExaminationFilterType.HISTORY -> historyExaminations
     }
 
-    // 4. ZOBRAZENÍ SEZNAMU NEBO ZPRÁVY "ŽÁDNÉ POLOŽKY"
-    if (filteredExaminations.isEmpty()) {
+    // 2. Zbytek kódu zůstává prakticky stejný
+    if (examinationsToShow.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
             Text(text = "Pro tento filtr nebyly nalezeny žádné prohlídky.")
         }
@@ -196,14 +191,12 @@ fun ListOfExaminationScreenContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            items(filteredExaminations, key = { it.examination.id!! }) { examination ->
+            items(examinationsToShow, key = { it.examination.id!! }) { examination ->
                 CustomExaminationRow(
                     item = examination,
                     onClick = {
-                        // 1. Bezpečně získáme ID lékaře. Pokud lékař neexistuje (nemělo by se stát), nic se nestane.
                         val doctorId = examination.doctor?.id
                         if (doctorId != null) {
-                            // 2. Zavoláme navigaci s ID lékaře
                             navigationRouter.navigateToExaminationDetail(doctorId)
                         }
                     }

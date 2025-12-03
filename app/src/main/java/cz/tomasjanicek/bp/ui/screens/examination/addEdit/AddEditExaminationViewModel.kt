@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import cz.tomasjanicek.bp.R
 
 @HiltViewModel
 class AddEditExaminationViewModel @Inject constructor(
@@ -33,10 +34,42 @@ class AddEditExaminationViewModel @Inject constructor(
     override fun saveExamination() {
         viewModelScope.launch {
             val currentState = _addEditExaminationUIState.value
-            if (currentState is AddEditExaminationUIState.ExaminationChanged) {
-                // TODO: Přidat validaci (účel a doktor nesmí být prázdné)
-                examinationRepository.insert(currentState.data.examination)
+            if (currentState !is AddEditExaminationUIState.ExaminationChanged) return@launch
+
+            val data = currentState.data
+            var isValid = true
+
+            // --- VALIDACE ÚČELU ---
+            val purposeError = if (data.examination.purpose.isBlank()) {
+                isValid = false
+                R.string.error_field_required // Předpokládá, že máte tento string v resources
+            } else {
+                null
+            }
+
+            // --- VALIDACE LÉKAŘE ---
+            val doctorError = if (data.examination.doctorId == null) {
+                isValid = false
+                R.string.error_field_required
+            } else {
+                null
+            }
+
+            if (isValid) {
+                // Pokud je vše v pořádku, uložíme
+                examinationRepository.insert(data.examination)
                 _addEditExaminationUIState.value = AddEditExaminationUIState.ExaminationSaved
+            } else {
+                // Pokud jsou chyby, aktualizujeme stav a zobrazíme je v UI
+                _addEditExaminationUIState.update {
+                    (it as AddEditExaminationUIState.ExaminationChanged).copy(
+                        data = it.data.copy(
+                            purposeError = purposeError,
+                            doctorError = doctorError,
+                            dateTimeError = null
+                        )
+                    )
+                }
             }
         }
     }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">bp</string>
+    <string name="error_field_required">Toto pole je povinné</string>
 </resources>

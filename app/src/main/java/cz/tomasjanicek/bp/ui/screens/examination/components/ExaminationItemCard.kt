@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cz.tomasjanicek.bp.model.Examination
@@ -73,13 +74,14 @@ fun ExaminationItemCard(
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    tint = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack                )
+                    tint = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack               )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formattedTime,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack                )
+                    color = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack,
+                    textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null)
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -89,12 +91,14 @@ fun ExaminationItemCard(
                     fontWeight = FontWeight.Bold,
                     color = MyBlack,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
                 )
                 Text(
                     text = formattedDate,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {

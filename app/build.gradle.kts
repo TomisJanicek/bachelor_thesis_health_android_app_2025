@@ -1,5 +1,8 @@
 import java.util.Properties
 
+
+
+
 plugins {
         alias(libs.plugins.android.application)
         alias(libs.plugins.jetbrains.kotlin.android)
@@ -22,8 +25,13 @@ android {
         applicationId = "cz.tomasjanicek.bp"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // --- ZMĚNA ZDE ---
+        // Načítáme verze z globálních proměnných definovaných v kořenovém build.gradle.kts
+        versionCode = rootProject.extra["appVersionCode"] as Int
+        versionName = rootProject.extra["appVersionName"] as String
+        // --- KONEC ZMĚNY ---
+        manifestPlaceholders["MAPS_API_KEY"] = properties.getProperty("MAPS_API_KEY", "")
+        buildConfigField("String", "MAPS_API_KEY", "\"${properties.getProperty("MAPS_API_KEY")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -165,6 +174,12 @@ dependencies {
     //Ovládání systému
     implementation(libs.accompanist.systemuicontroller)
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+
+
+    implementation(libs.accompanist.permissions)
+    implementation(libs.play.services.location)
 }
 
 // For Hilt

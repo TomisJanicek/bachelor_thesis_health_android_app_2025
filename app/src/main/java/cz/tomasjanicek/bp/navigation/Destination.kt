@@ -8,6 +8,13 @@ sealed class Destination(val route: String) {
 
     object DetailOfExaminationScreen : Destination("detail_of_examination_screen")
 
+    object DoctorEditScreen : Destination("doctor_edit_screen")
+
+    object MapSelectorScreen: Destination("map_selector")
+
+
+
+
 
 
 

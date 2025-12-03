@@ -24,6 +24,9 @@ val TagYellow = Color(0xFFFFD600)
 val TagGreen = Color(0xFF64DD17)
 val TagOrange = Color(0xFFDD2C00)
 val TagPurple = Color(0xFF6200EA)
+val TagGrey = Color(0xFFAAAAAA)
+
+
 val TagStroke = Color(0xFF1A1A1A)
 
 

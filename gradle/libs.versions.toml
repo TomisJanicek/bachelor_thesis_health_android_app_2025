@@ -58,9 +58,12 @@ androidxTestRunner = "1.7.0"
 androidxTestRules = "1.7.0"
 roomCommonJvm = "2.8.3"
 material3 = "1.4.0"
+firebaseFirestoreKtx = "26.0.2"
+
 
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistSystemuicontroller" }
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
@@ -140,6 +143,11 @@ androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxT
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+# TÍMTO NOVÝM ŘÁDKEM (bez -ktx a s novým aliasem):
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+
+# Dále přidejte definici pro Firebase BOM (Bill of Materials), která bude spravovat verze
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "34.0.0" } # Použijte nejnovější verzi
 
 
 

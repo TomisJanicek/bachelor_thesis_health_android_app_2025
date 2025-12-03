@@ -8,6 +8,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import cz.tomasjanicek.bp.ui.theme.TagGreen
+import cz.tomasjanicek.bp.ui.theme.TagGrey
 import cz.tomasjanicek.bp.ui.theme.TagOrange
 import cz.tomasjanicek.bp.ui.theme.TagYellow
 import cz.tomasjanicek.bp.ui.theme.TagPurple
@@ -38,7 +39,9 @@ enum class ExaminationType(val label: String, val tagColor: Color) {
     PROHLIDKA("Prohlídka", TagYellow),
     ZAKROK("Zákrok", TagGreen),
     VYSETRENI("Vyšetření", TagOrange),
-    ODBER_KRVE("Odběr krve", TagPurple)
+    ODBER_KRVE("Odběr krve", TagPurple),
+
+    JINE("Jiné", TagGrey)
 }
 
 enum class ExaminationStatus {

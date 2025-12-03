@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import cz.tomasjanicek.bp.model.Doctor // Doplň import
 import cz.tomasjanicek.bp.model.ExaminationStatus
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyRed
 import cz.tomasjanicek.bp.utils.DateUtils
 import java.time.Instant
 import java.time.ZoneId
@@ -95,7 +96,7 @@ fun CustomExaminationRow(
                             text = doctor?.specialization ?: "Neznámá specializace",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = MyBlack,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier,
@@ -131,12 +132,13 @@ fun CustomExaminationRow(
                             imageVector = Icons.Outlined.Event,
                             contentDescription = "Datum",
                             modifier = Modifier.size(20.dp),
-                            tint = MyBlack
+                            tint = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = DateUtils.getDateTimeString(examination.dateTime),                           style = MaterialTheme.typography.bodyMedium,
-                            color = MyBlack,
+                            text = DateUtils.getDateTimeString(examination.dateTime),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null

@@ -114,8 +114,8 @@ fun DetailOfExaminationScreen(
     val allRelatedExaminations by viewModel.allRelatedExaminations.collectAsStateWithLifecycle()
     val selectedExaminationForSheet by viewModel.selectedExaminationForDetail.collectAsStateWithLifecycle()
 
-    LaunchedEffect(doctorId) { // <<< ZMĚNA ZDE
-        viewModel.loadDoctorAndExaminations(doctorId) // <<< ZMĚNA ZDE
+    LaunchedEffect(doctorId) {
+        viewModel.loadDoctorAndExaminations(doctorId)
     }
 
     when (val state = uiState) {
@@ -142,6 +142,14 @@ fun DetailOfExaminationScreen(
                     if (mainExaminationId != null) {
                     navigationRouter.navigateToAddEditExaminationScreen(mainExaminationId)
                 }
+                },
+                // --- PŘIDEJTE TUTO NOVOU AKCI ---
+                onEditDoctorClick = {
+                    val doctorIdToEdit = state.examinationWithDoctor.doctor?.id
+                    if (doctorIdToEdit != null) {
+                        // Zde voláme novou navigační funkci, kterou jsme si připravili
+                        navigationRouter.navigateToDoctorEditScreen(doctorIdToEdit)
+                    }
                 },
                 // --- PŘIDEJTE TYTO NOVÉ PARAMETRY ---
                 selectedExaminationForSheet = selectedExaminationForSheet,
@@ -186,6 +194,7 @@ fun DetailOfExaminationContent(
     onToggleExaminations: (Boolean) -> Unit,
     onNavigateBack: () -> Unit,
     onEditClick: () -> Unit,
+    onEditDoctorClick: () -> Unit, // <-- PŘIDAT TENTO ŘÁDEK
     onRelatedItemClick: (Examination) -> Unit,
     selectedExaminationForSheet: Examination?,
     onHideSheet: () -> Unit,
@@ -259,7 +268,7 @@ fun DetailOfExaminationContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onEditClick) {
+                    IconButton(onClick = onEditDoctorClick) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Upravit",
@@ -507,7 +516,7 @@ fun DetailOfExaminationContent(
                         buildString {
                             doctor?.phone?.let { append("Tel: $it") }
                             doctor?.email?.let {
-                                if (isNotEmpty()) append(" | ")
+                                if (isNotEmpty()) append("\n")
                                 append("Email: $it")
                             }
                             doctor?.location?.let {
@@ -540,40 +549,7 @@ fun DetailOfExaminationContent(
                 }
             }
 
-            if (!examination.note.isNullOrBlank()) {
-                item {
-                    Section(title = "Poznámka") {
-                        Text(
-                            text = examination.note,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            color = MyBlack
-                        )
-                    }
-                }
-            }
-
-            if (!examination.result.isNullOrBlank()) {
-                item {
-                    Section(title = "Výsledek") {
-                        Text(
-                            text = examination.result,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            color = MyBlack
-                        )
-                    }
-                }
-            }
-
             if (allRelatedExaminations.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
                 item {
                     Section(title = "Další prohlídky u tohoto lékaře") {
                         StatusSelector(

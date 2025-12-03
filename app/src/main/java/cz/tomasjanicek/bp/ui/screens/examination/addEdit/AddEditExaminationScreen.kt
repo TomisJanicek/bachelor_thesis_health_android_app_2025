@@ -8,7 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -108,6 +112,7 @@ fun AddEditExaminationScreen(
         }
     }
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0), // <-- PŘIDAT TENTO ŘÁDEK
         containerColor = MyWhite,
         topBar = {
             TopAppBar(
@@ -147,18 +152,19 @@ fun AddEditExaminationScreen(
         },
         // Tlačítko pro uložení
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 8.dp,
-                color = MyWhite
+            // Použijeme standardní Row pro zarovnání a padding
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                // Barva pozadí stejná jako u TopAppBar pro konzistenci
+                .background(MyWhite)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Button(
                     onClick = { viewModel.saveExamination() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    // Tlačítko bude aktivní, jen pokud je vyplněn účel
-                    enabled = data.purposeError == null
+                    modifier = Modifier.fillMaxWidth(),
+                    // Tlačítko bude aktivní, pouze pokud jsou všechna povinná pole validní
+                    enabled = data.purposeError == null && data.doctorError == null && data.dateTimeError == null
                 ) {
                     Text("Uložit")
                 }
@@ -166,7 +172,7 @@ fun AddEditExaminationScreen(
         }
     ) { innerPadding ->
         AddEditExaminationContent(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(innerPadding).padding(WindowInsets.ime.asPaddingValues()),
             data = data,
             actions = viewModel
         )
@@ -212,6 +218,14 @@ fun AddEditExaminationContent(
                 isError = data.purposeError != null,
                 singleLine = true
             )
+            if (data.purposeError != null) {
+                Text(
+                    text = stringResource(id = data.purposeError),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp) // Odsadíme, aby licoval s textem
+                )
+            }
         }
         item {
             val selectedDoctorName =
@@ -279,6 +293,14 @@ fun AddEditExaminationContent(
                         )
                     }
                 }
+            }
+            if (data.doctorError != null) {
+                Text(
+                    text = stringResource(id = data.doctorError),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp) // Odsadíme, aby licoval s textem
+                )
             }
         }
 
