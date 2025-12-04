@@ -33,6 +33,7 @@ import cz.tomasjanicek.bp.model.ExaminationStatus
 import cz.tomasjanicek.bp.ui.elements.TagChip
 import cz.tomasjanicek.bp.ui.screens.examination.detail.toCzechString
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyRed
 import cz.tomasjanicek.bp.utils.DateUtils
 
@@ -55,7 +56,7 @@ fun ExaminationItemCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Gray.copy(alpha = 0.1f),
+            containerColor = MyGreen.copy(alpha = 0.5f),
 
 
             ),

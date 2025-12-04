@@ -58,14 +58,19 @@ fun DoctorEditScreen( // Přejmenováno
         Log.d("LocationFlow", "[DoctorEditScreen] LaunchedEffect se spustil s hodnotami: lat=${latitudeFromResult}, lng=${longitudeFromResult}")
         if (latitudeFromResult != null && longitudeFromResult != null) {
             Log.d("LocationFlow", "[DoctorEditScreen] Volám viewModel.handleLocationResult()")
-            // Už není potřeba volat .toDouble(), protože hodnoty už jsou Double
-            viewModel.handleLocationResult(latitudeFromResult, longitudeFromResult)
+
+            // Zavoláme metodu a počkáme, až její Job doběhne
+            viewModel.handleLocationResult(latitudeFromResult, longitudeFromResult).join()
+
+            // Až POTÉ, co ViewModel vše zpracuje, smažeme výsledek.
+            Log.d("LocationFlow", "[DoctorEditScreen] ViewModel dokončil zpracování, volám onResultConsumed()")
             onResultConsumed()
         }
     }
 
+
     LaunchedEffect(key1 = doctorId) {
-        viewModel.loadDoctor(doctorId)
+        viewModel.subscribeToDoctorUpdates(doctorId)
     }
     LaunchedEffect(uiState) {
         if (uiState is DoctorEditUIState.DoctorSaved) {
@@ -218,12 +223,12 @@ private fun DoctorEditContent( // Přejmenováno
         // Adresa s tlačítkem pro výběr
         item {
             OutlinedTextField(
-                value = doctor.location ?: "",
+                // --- ZMĚNA ZDE ---
+                value = doctor.addressLabel ?: "", // Používáme přejmenované pole
                 onValueChange = { actions.onLocationChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Adresa") },
+                label = { Text("Adresa / Popis místa") }, // Můžeme vylepšit popisek
                 trailingIcon = {
-                    // ZMĚNA: Voláme předanou lambda funkci místo akce z ViewModelu
                     IconButton(onClick = onSelectLocationOnMapClicked) {
                         Icon(Icons.Default.Map, contentDescription = "Vybrat na mapě")
                     }
@@ -242,14 +247,16 @@ private fun DoctorEditContent( // Přejmenováno
                     onValueChange = { /* Read-only */ },
                     modifier = Modifier.weight(1f),
                     label = { Text("Latitude") },
-                    readOnly = true
+                    readOnly = true,
+                    enabled = false // Vizuálně odliší pole jako neaktivní
                 )
                 OutlinedTextField(
                     value = doctor.longitude?.let { decimalFormat.format(it) } ?: "N/A",
                     onValueChange = { /* Read-only */ },
                     modifier = Modifier.weight(1f),
                     label = { Text("Longitude") },
-                    readOnly = true
+                    readOnly = true,
+                    enabled = false // Vizuálně odliší pole jako neaktivní
                 )
             }
         }

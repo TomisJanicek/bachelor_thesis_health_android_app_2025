@@ -17,4 +17,21 @@ interface INavigationRouter {
     fun navigateToMapSelectorScreen(initialLatitude: Double? = null, initialLongitude: Double? = null)
     fun returnWithResult(vararg results: Pair<String, Any>)
 
+// 🔹 NOVÉ – měření
+
+    /** Seznam kategorií měření (hlavní screen sekce měření). */
+    fun navigateToListOfMeasurementCategories()
+
+    /** Přidat / upravit kategorii měření. */
+    fun navigateToAddEditMeasurementCategory(id: Long? = null)
+
+    /** Přidat / upravit konkrétní měření v dané kategorii. */
+    fun navigateToAddEditMeasurement(categoryId: Long, measurementId: Long? = null)
+
+    /** Detail jednoho měření. */
+    fun navigateToMeasurementDetail(id: Long)
+
+    fun navigateToMeasurementCategoryDetail(categoryId: Long)
+
+
 }

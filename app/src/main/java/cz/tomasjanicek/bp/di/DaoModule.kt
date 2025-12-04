@@ -3,6 +3,8 @@ package cz.tomasjanicek.bp.di
 import cz.tomasjanicek.bp.database.AppDatabase
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
+import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
+import cz.tomasjanicek.bp.database.measurement.MeasurementDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,4 +22,14 @@ object DaoModule {
     @Provides
     @Singleton
     fun provideExaminationDao(db: AppDatabase): ExaminationDao = db.examinationDao()
+
+    @Provides
+    @Singleton
+    fun provideMeasurementCategoryDao(db: AppDatabase): MeasurementCategoryDao =
+        db.measurementCategoryDao()
+
+    @Provides
+    @Singleton
+    fun provideMeasurementDao(db: AppDatabase): MeasurementDao =
+        db.measurementDao()
 }

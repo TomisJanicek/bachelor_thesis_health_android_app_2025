@@ -1,5 +1,6 @@
 package cz.tomasjanicek.bp.navigation
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -15,6 +16,10 @@ import cz.tomasjanicek.bp.ui.screens.examination.detail.DetailOfExaminationScree
 import cz.tomasjanicek.bp.ui.screens.examination.doctorEdit.DoctorEditScreen
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationScreen
 import cz.tomasjanicek.bp.ui.screens.examination.mapSelector.MapSelectorScreen
+import cz.tomasjanicek.bp.ui.screens.measurement.addEditCategory.AddEditCategoryScreen
+import cz.tomasjanicek.bp.ui.screens.measurement.addEditMeasurement.AddEditMeasurementScreen
+import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCategoryDetailScreen
+import cz.tomasjanicek.bp.ui.screens.measurement.list.ListOfMeasurementCategory
 
 @Composable
 fun NavGraph(
@@ -101,10 +106,98 @@ fun NavGraph(
             val initialLatitude = if (latArg != -1.0f) latArg.toDouble() else null
             val initialLongitude = if (lngArg != -1.0f) lngArg.toDouble() else null
 
-            MapSelectorScreen( //TODO červeně podtrženo
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                MapSelectorScreen( //TODO červeně podtrženo
+                    navigationRouter = navigationRouter,
+                    initialLatitude = initialLatitude,
+                    initialLongitude = initialLongitude
+                )
+            }
+        }
+        // 🔹 NOVÉ – measurement routy
+
+        // Seznam kategorií měření
+        composable(Destination.ListOfMeasurementCategoryScreen.route) {
+            ListOfMeasurementCategory(
+                navigationRouter = navigationRouter
+            )
+        }
+
+        // Přidat novou kategorii měření
+        composable(Destination.AddEditMeasurementCategoryScreen.route) {
+            AddEditCategoryScreen(
                 navigationRouter = navigationRouter,
-                initialLatitude = initialLatitude,
-                initialLongitude = initialLongitude
+                id = null
+            )
+        }
+
+        // Upravit existující kategorii
+        composable(
+            route = Destination.AddEditMeasurementCategoryScreen.route + "/{id}",
+            arguments = listOf(
+                navArgument("id") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
+            val idArg = backStackEntry.arguments?.getLong("id") ?: -1L
+            val id = if (idArg == -1L) null else idArg
+            AddEditCategoryScreen(
+                navigationRouter = navigationRouter,
+                id = id
+            )
+        }
+
+        // Přidat nové měření v kategorii
+        composable(
+            route = Destination.AddEditMeasurementScreen.route + "/{categoryId}",
+            arguments = listOf(
+                navArgument("categoryId") {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: -1L
+            AddEditMeasurementScreen(
+                navigationRouter = navigationRouter,
+                categoryId = categoryId,
+                measurementId = null
+            )
+        }
+
+        // Upravit existující měření
+        composable(
+            route = Destination.AddEditMeasurementScreen.route + "/{categoryId}/{measurementId}",
+            arguments = listOf(
+                navArgument("categoryId") { type = NavType.LongType },
+                navArgument("measurementId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: -1L
+            val measurementIdArg = backStackEntry.arguments?.getLong("measurementId") ?: -1L
+            val measurementId = if (measurementIdArg == -1L) null else measurementIdArg
+
+            AddEditMeasurementScreen(
+                navigationRouter = navigationRouter,
+                categoryId = categoryId,
+                measurementId = measurementId
+            )
+        }
+
+        composable(
+            route = Destination.MeasurementCategoryDetailScreen.route + "/{categoryId}",
+            arguments = listOf(
+                navArgument("categoryId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: -1L
+            MeasurementCategoryDetailScreen(
+                navigationRouter = navigationRouter,
+                categoryId = categoryId
             )
         }
     }

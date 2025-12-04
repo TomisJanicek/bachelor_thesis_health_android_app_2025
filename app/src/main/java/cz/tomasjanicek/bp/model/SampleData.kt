@@ -14,7 +14,7 @@ val sampleDoctors = listOf(
         specialization = "Kardiologie",
         phone = "+420 123 456 789",
         email = "eva.dvorakova@kardio.cz",
-        location = "Fakultní nemocnice Brno",
+        addressLabel = "Fakultní nemocnice Brno",
         subtitle = "Vedoucí lékařka oddělení. Více než 20 let praxe.",
         latitude = 49.1920,
         longitude = 16.6096,
@@ -27,7 +27,7 @@ val sampleDoctors = listOf(
         name = "MUDr. Petr Novotný",
         specialization = "Praktický lékař",
         phone = "+420 777 888 998",
-        location = "Poliklinika Vltava, Praha 4",
+        addressLabel = "Poliklinika Vltava, Praha 4",
         image = "prakticky_lekar"
         // 'email', 'subtitle', 'latitude', 'longitude' jsou null
     ),
@@ -38,7 +38,7 @@ val sampleDoctors = listOf(
         name = "MUDr. Jana Veselá",
         specialization = "Dermatologie",
         email = "info@kozni-vesela.cz",
-        location = "Soukromá praxe, Ostrava-Poruba",
+        addressLabel = "Soukromá praxe, Ostrava-Poruba",
         subtitle = "Specializace na dětskou dermatologii a akné."
         ),
 
@@ -57,7 +57,7 @@ val sampleDoctors = listOf(
         specialization = "Gynekologie",
         phone = "+420 605 234 567",
         email = "mudr.svobodova@gynekologie-jihlava.cz",
-        location = "Nemocnice Jihlava",
+        addressLabel = "Nemocnice Jihlava",
         subtitle = "Péče o těhotné a preventivní prohlídky.",
         latitude = 49.3995,
         longitude = 15.5925

@@ -68,6 +68,7 @@ fun CustomBottomBar(
                     selectedItemIndex = index
                     when (index) {
                         0 -> navigationRouter.navigaTetoListOfExaminationView()
+                        1 -> navigationRouter.navigateToListOfMeasurementCategories()
                         4 -> navigationRouter.navigateToDemoScreen()
                     }
                 },

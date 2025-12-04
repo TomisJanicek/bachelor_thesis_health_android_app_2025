@@ -58,4 +58,40 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
         // Vrátíme se zpět
         navController.popBackStack()
     }
+
+    // 🔹 NOVĚ – měření
+
+    override fun navigateToListOfMeasurementCategories() {
+        navController.navigate(Destination.ListOfMeasurementCategoryScreen.route)
+    }
+
+    override fun navigateToAddEditMeasurementCategory(id: Long?) {
+        if (id != null && id != 0L) {
+            navController.navigate(
+                Destination.AddEditMeasurementCategoryScreen.route + "/$id"
+            )
+        } else {
+            navController.navigate(Destination.AddEditMeasurementCategoryScreen.route)
+        }
+    }
+
+    override fun navigateToAddEditMeasurement(categoryId: Long, measurementId: Long?) {
+        val base = "${Destination.AddEditMeasurementScreen.route}/$categoryId"
+        val route = if (measurementId != null && measurementId != 0L) {
+            "$base/$measurementId"
+        } else {
+            base
+        }
+        navController.navigate(route)
+    }
+
+    override fun navigateToMeasurementDetail(id: Long) {
+        navController.navigate("${Destination.DetailOfMeasurementScreen.route}/$id")
+    }
+
+    override fun navigateToMeasurementCategoryDetail(categoryId: Long) {
+        navController.navigate(
+            Destination.MeasurementCategoryDetailScreen.route + "/$categoryId"
+        )
+    }
 }

@@ -27,6 +27,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -47,6 +48,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerColors
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -71,8 +73,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.tomasjanicek.bp.model.ExaminationType
 import cz.tomasjanicek.bp.navigation.INavigationRouter
+import cz.tomasjanicek.bp.ui.elements.CustomDatePickerDialog
+import cz.tomasjanicek.bp.ui.elements.CustomTimePickerDialog
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
+import cz.tomasjanicek.bp.ui.theme.MyRed
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.utils.DateUtils
 import java.text.SimpleDateFormat
@@ -172,7 +178,9 @@ fun AddEditExaminationScreen(
         }
     ) { innerPadding ->
         AddEditExaminationContent(
-            modifier = Modifier.padding(innerPadding).padding(WindowInsets.ime.asPaddingValues()),
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(WindowInsets.ime.asPaddingValues()),
             data = data,
             actions = viewModel
         )
@@ -193,16 +201,21 @@ fun AddEditExaminationContent(
     var doctorMenuExpanded by remember { mutableStateOf(false) }
 
     // 2. Stavy pro samotný DatePicker a TimePicker
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = data.examination.dateTime
-    )
-    val timePickerState = rememberTimePickerState(
-        initialHour = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }
-            .get(Calendar.HOUR_OF_DAY),
-        initialMinute = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }
-            .get(Calendar.MINUTE),
-        is24Hour = true
-    )
+    val datePickerState = remember(data.examination.dateTime) {
+        DatePickerState(
+            locale = java.util.Locale.getDefault(),
+            initialSelectedDateMillis = data.examination.dateTime
+        )
+    }
+
+    val timePickerState = remember(data.examination.dateTime) {
+        val cal = Calendar.getInstance().apply { timeInMillis = data.examination.dateTime }
+        TimePickerState(
+            initialHour = cal.get(Calendar.HOUR_OF_DAY),
+            initialMinute = cal.get(Calendar.MINUTE),
+            is24Hour = true
+        )
+    }
 
     LazyColumn(
         modifier = modifier.padding(16.dp),
@@ -361,23 +374,20 @@ fun AddEditExaminationContent(
         // --- VÝBĚR DATA A ČASU ---
         item {
             OutlinedTextField(
-                // POUŽITÍ DateUtils
                 value = DateUtils.getDateTimeString(data.examination.dateTime),
                 onValueChange = { /* Read-only */ },
                 label = { Text("Datum a čas vyšetření") },
                 leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Datum") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showDatePicker = true }
-                    .background(MaterialTheme.colorScheme.onBackground),
-
+                    .clickable { showDatePicker = true },
                 readOnly = true,
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledBorderColor = MaterialTheme.colorScheme.onSurface,
-                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
-                    disabledLabelColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MyBlack,
+                    disabledBorderColor = MyBlack,
+                    disabledLeadingIconColor = MyBlack,
+                    disabledLabelColor = MyBlack,
                 )
             )
         }
@@ -395,124 +405,30 @@ fun AddEditExaminationContent(
     }
 
     if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDatePicker = false
-                        showTimePicker = true
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
-                ) { Text("Vybrat čas") }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDatePicker = false },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
-                )
-                { Text("Zrušit") }
-            },
-            colors = DatePickerDefaults.colors(
-                // 1. Nastavíme barvu pozadí dialogu na černou
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            DatePicker(
-                state = datePickerState,
-                // 3. Nezapomeňte nastavit barvy i pro vnitřní DatePicker!
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Pozadí samotného kalendáře
-                    titleContentColor = MyBlack,
-                    headlineContentColor = MyBlack,
-                    weekdayContentColor = MyBlack,
-                    subheadContentColor = MyBlack,
-                    dayContentColor = MyBlack,
-                    disabledDayContentColor = MyBlack.copy(alpha = 0.38f),
-                    disabledSelectedDayContentColor = MyBlack.copy(alpha = 0.38f),
-                    selectedDayContentColor = MyBlack,
-                    selectedDayContainerColor = MaterialTheme.colorScheme.secondary,
-                    todayContentColor = MyBlack,
-                    todayDateBorderColor = MaterialTheme.colorScheme.secondary,
-                    dividerColor = MyBlack.copy(alpha = 0.5f),
-                    yearContentColor = MyBlack,
-                    navigationContentColor = MyBlack,
-                    selectedYearContentColor = MyBlack,
-                    currentYearContentColor = MyBlack,
-
-
-                    )
-            )
-        }
+        CustomDatePickerDialog(
+            datePickerState = datePickerState,
+            onDismiss = { showDatePicker = false },
+            onConfirm = {
+                showDatePicker = false
+                showTimePicker = true
+            }
+        )
     }
 
     if (showTimePicker) {
-        CustomTimePickerDialog( // Používáme vlastní Composable níže
-            onDismissRequest = { showTimePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showTimePicker = false
-                        val selectedDate = Calendar.getInstance().apply {
-                            timeInMillis =
-                                datePickerState.selectedDateMillis ?: System.currentTimeMillis()
-                        }
-                        selectedDate.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                        selectedDate.set(Calendar.MINUTE, timePickerState.minute)
-                        actions.onDateTimeChanged(selectedDate.timeInMillis)
-                    }
-                ) { Text("Potvrdit") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("Zrušit") }
-            }
-        ) {
-            TimePicker(
-                state = timePickerState,
-                colors = TimePickerDefaults.colors(
-                    clockDialColor = MyPink,
-                    clockDialSelectedContentColor = MyPink,
-                    clockDialUnselectedContentColor = MyPink,
-                    selectorColor = MyPink,
-                    containerColor = MyPink,
-                    //periodSelectorBorderColor = MyPink,
-                    //periodSelectorSelectedContainerColor = MyPink,
-                    //periodSelectorUnselectedContainerColor = MyPink,
-                    //periodSelectorSelectedContentColor = MyPink,
-                    //periodSelectorUnselectedContentColor = MyPink,
-                    //timeSelectorSelectedContainerColor = MyPink,
-                    timeSelectorUnselectedContainerColor = MyPink,
-                    timeSelectorSelectedContentColor = MyPink,
-                    timeSelectorUnselectedContentColor = MyPink,
-                )
-            )
-        }
-    }
-}
-
-/// Změnil jsem název, aby bylo jasné, že je to vlastní implementace
-@Composable
-private fun CustomTimePickerDialog(
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable () -> Unit,
-    dismissButton: @Composable () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    Dialog(onDismissRequest = onDismissRequest) {
-        Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.padding(top = 24.dp, bottom = 12.dp)) {
-                    content() // Zde je TimePicker
+        CustomTimePickerDialog(
+            timePickerState = timePickerState,
+            onDismiss = { showTimePicker = false },
+            onConfirm = {
+                showTimePicker = false
+                val cal = Calendar.getInstance().apply {
+                    // Použijeme správnou vlastnost `selectedDateMillis`
+                    timeInMillis = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
                 }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp, end = 6.dp), horizontalArrangement = Arrangement.End
-                ) {
-                    dismissButton()
-                    confirmButton()
-                }
+                cal.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                cal.set(Calendar.MINUTE, timePickerState.minute)
+                actions.onDateTimeChanged(cal.timeInMillis)
             }
-        }
+        )
     }
 }

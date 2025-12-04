@@ -12,10 +12,19 @@ sealed class Destination(val route: String) {
 
     object MapSelectorScreen: Destination("map_selector")
 
+    // 🔹 NOVÉ – měření
+    object ListOfMeasurementCategoryScreen :
+        Destination("list_of_measurement_category_screen")
 
+    object AddEditMeasurementCategoryScreen :
+        Destination("add_edit_measurement_category_screen")
 
+    object AddEditMeasurementScreen :
+        Destination("add_edit_measurement_screen")
 
+    object DetailOfMeasurementScreen :
+        Destination("detail_of_measurement_screen")
 
-
-
+    object MeasurementCategoryDetailScreen :
+        Destination("measurement_category_detail_screen")
 }

@@ -19,7 +19,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.distinctUntilChanged
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @HiltViewModel
 class DoctorEditViewModel @Inject constructor(
@@ -30,44 +32,71 @@ class DoctorEditViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<DoctorEditUIState>(DoctorEditUIState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    fun handleLocationResult(latitude: Double, longitude: Double) {
-        Log.d("LocationFlow", "[DoctorEditViewModel] handleLocationResult...")
+    private var doctorSubscriptionJob: Job? = null
 
-        // 1. Aktualizace souřadnic
-        updateState { currentData ->
-            currentData.copy(
-                doctor = currentData.doctor?.copy(latitude = latitude, longitude = longitude)
-            )
-        }
+    fun handleLocationResult(latitude: Double, longitude: Double): Job {
+        return viewModelScope.launch {
+            Log.d("LocationFlow", "[DoctorEditViewModel] handleLocationResult start")
 
-        viewModelScope.launch {
-            Log.d("LocationFlow", "[DoctorEditViewModel] Spouštím reverse geocoding...")
+            // Získáme aktuální data o doktorovi, se kterými budeme pracovat.
+            // Pokud data nejsou dostupná (např. stav je Loading), nemá smysl pokračovat.
+            val currentDoctor = (_uiState.value as? DoctorEditUIState.Success)?.data?.doctor
+            if (currentDoctor == null) {
+                Log.e("LocationFlow", "handleLocationResult byl volán, ale data o doktorovi nejsou dostupná.")
+                return@launch
+            }
+
+            // Vytvoříme novou, aktualizovanou instanci doktora.
+            var updatedDoctor = currentDoctor.copy(latitude = latitude, longitude = longitude)
+
+            // Krok 1: Okamžitě aktualizuj UI stav, aby uživatel viděl změnu.
+            updateState { currentData ->
+                currentData.copy(doctor = updatedDoctor)
+            }
+
+            // Krok 2: Spusť geocoding a počkej na něj.
+            Log.d("LocationFlow", "[DoctorEditViewModel] Spouštím a čekám na reverse geocoding...")
             val address = getAddressFromCoordinates(context, latitude, longitude)
             Log.d("LocationFlow", "[DoctorEditViewModel] Výsledek geocodingu: ${address ?: "null"}")
 
+            // Krok 3: Pokud geocoding uspěl, znovu aktualizuj instanci doktora a UI.
             if (address != null) {
-                // 2. Aktualizace adresy
+                updatedDoctor = updatedDoctor.copy(addressLabel = address)
                 updateState { currentData ->
-                    currentData.copy(
-                        doctor = currentData.doctor?.copy(location = address)
-                    )
+                    currentData.copy(doctor = updatedDoctor)
                 }
             }
+
+            // --- KLÍČOVÝ KROK ZDE ---
+            // Krok 4: Ulož finální, aktualizovanou verzi doktora do databáze.
+            Log.d("LocationFlow", "[DoctorEditViewModel] Ukládám finální data doktora do databáze.")
+            doctorRepository.update(updatedDoctor)
+
+            Log.d("LocationFlow", "[DoctorEditViewModel] handleLocationResult finish")
         }
     }
 
 
-    fun loadDoctor(doctorId: Long) {
-        viewModelScope.launch {
-            _uiState.value = DoctorEditUIState.Loading
-            val doctor = doctorRepository.getDoctor(doctorId)
-            if (doctor != null) {
-                _uiState.value = DoctorEditUIState.Success(
-                    DoctorEditData(doctor = doctor)
-                )
-            } else {
-                _uiState.value = DoctorEditUIState.Error("Lékař s ID $doctorId nebyl nalezen.")
-            }
+    fun subscribeToDoctorUpdates(doctorId: Long) {
+        doctorSubscriptionJob?.cancel() // Zrušíme staré poslouchání
+        doctorSubscriptionJob = viewModelScope.launch {
+            // Použijeme metodu, která vrací Flow
+            doctorRepository.getDoctorWithData(doctorId)
+                .distinctUntilChanged() // Ignoruje emise, pokud se data nezměnila
+                .collect { doctorFromDb ->
+                    if (doctorFromDb != null) {
+                        // Pokaždé, když se data v DB změní, aktualizujeme náš UI stav
+                        _uiState.update { currentState ->
+                            // Pokud už máme nějaká data (např. validační chybu), zachováme je
+                            val existingData = (currentState as? DoctorEditUIState.Success)?.data
+                            DoctorEditUIState.Success(
+                                data = existingData?.copy(doctor = doctorFromDb) ?: DoctorEditData(doctor = doctorFromDb)
+                            )
+                        }
+                    } else {
+                        _uiState.value = DoctorEditUIState.Error("Lékař s ID $doctorId nebyl nalezen.")
+                    }
+                }
         }
     }
 
@@ -133,12 +162,20 @@ class DoctorEditViewModel @Inject constructor(
         updateState { it.copy(doctor = it.doctor?.copy(email = email.ifBlank { null })) }
     }
 
-    override fun onLocationChanged(location: String) {
-        updateState { it.copy(doctor = it.doctor?.copy(location = location.ifBlank { null })) }
+    override fun onLocationChanged(newLabel: String) {
+        // Pouze a jen aktualizujeme textový popisek. Souřadnic se nedotýkáme.
+        updateState {
+            it.copy(doctor = it.doctor?.copy(addressLabel = newLabel.ifBlank { null }))
+        }
     }
 
     override fun onSubtitleChanged(subtitle: String) {
         updateState { it.copy(doctor = it.doctor?.copy(subtitle = subtitle.ifBlank { null })) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        doctorSubscriptionJob?.cancel() // Uklidíme po sobě
     }
 
 }

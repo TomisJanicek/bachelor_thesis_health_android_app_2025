@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.DoDisturb
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
@@ -441,18 +442,25 @@ fun DetailOfExaminationContent(
                             }
                             Button(
                                 onClick = {
-                                    doctor?.location?.let { address ->
-                                        val encodedAddress = Uri.encode(address)
+                                    // Prioritně použijeme přesné souřadnice, pokud existují.
+                                    if (doctor?.latitude != null && doctor.longitude != null) {
+                                        val lat = doctor.latitude
+                                        val lng = doctor.longitude
+                                        val intentUri = "geo:$lat,$lng?q=$lat,$lng(Cíl)".toUri()
+                                        val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
+                                        mapIntent.setPackage("com.google.android.apps.maps")
+                                        context.startActivity(mapIntent)
+                                    } else if (!doctor?.addressLabel.isNullOrBlank()) {
+                                        // Pokud souřadnice nejsou, zkusíme navigovat alespoň podle textového popisku.
+                                        val encodedAddress = Uri.encode(doctor.addressLabel)
                                         val geoUri = "geo:0,0?q=$encodedAddress".toUri()
                                         val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
                                         mapIntent.setPackage("com.google.android.apps.maps")
-                                        try {
-                                            context.startActivity(mapIntent)
-                                        } catch (e: Exception) {
-                                            // Zde by mohla být logika pro případ, že mapy selžou
-                                        }
+                                        context.startActivity(mapIntent)
                                     }
                                 },
+                                // Tlačítko je aktivní, pokud máme buď souřadnice, NEBO textovou adresu.
+                                enabled = (doctor?.latitude != null && doctor.longitude != null) || !doctor?.addressLabel.isNullOrBlank(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
                                     contentColor = MyBlack
@@ -485,33 +493,8 @@ fun DetailOfExaminationContent(
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    InfoCard(
-                        icon = Icons.Default.CalendarMonth
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Nejbližší prohlídka",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MyBlack
-                                )
-                                Text(
-                                    text = formattedDateTime,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MyBlack
-                                )
-                            }
-                            TagChip(type = examination.type)
-                        }
-                    }
 
+                ) {
                     val doctorDetails = remember(doctor) {
                         buildString {
                             doctor?.phone?.let { append("Tel: $it") }
@@ -519,7 +502,7 @@ fun DetailOfExaminationContent(
                                 if (isNotEmpty()) append("\n")
                                 append("Email: $it")
                             }
-                            doctor?.location?.let {
+                            doctor?.addressLabel?.let {
                                 if (isNotEmpty()) append("\n")
                                 append("Adresa: $it")
                             }
@@ -544,6 +527,13 @@ fun DetailOfExaminationContent(
                                     color = MyBlack
                                 )
                             }
+                            if (doctor?.subtitle?.isNotBlank() == true) {
+                                Text(
+                                    text = doctor.subtitle.toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MyBlack
+                                )
+                            }
                         }
                     }
                 }
@@ -551,7 +541,7 @@ fun DetailOfExaminationContent(
 
             if (allRelatedExaminations.isNotEmpty()) {
                 item {
-                    Section(title = "Další prohlídky u tohoto lékaře") {
+                    Section(title = "Prohlídky u tohoto lékaře") {
                         StatusSelector(
                             selectedFilter = if (showUpcoming) ExaminationFilterType.SCHEDULED else ExaminationFilterType.HISTORY,
                             onFilterSelected = { filterType ->
@@ -601,7 +591,7 @@ fun DetailOfExaminationContent(
                                         )
                                         .putExtra(
                                             CalendarContract.Events.EVENT_LOCATION,
-                                            doctor?.location ?: ""
+                                            doctor?.addressLabel ?: ""
                                         )
 
                                 context.startActivity(intent)
