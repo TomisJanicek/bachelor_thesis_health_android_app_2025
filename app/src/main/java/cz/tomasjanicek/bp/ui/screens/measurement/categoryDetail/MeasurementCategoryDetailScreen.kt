@@ -28,13 +28,17 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,11 +60,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import cz.tomasjanicek.bp.model.Measurement
 import cz.tomasjanicek.bp.navigation.INavigationRouter
+import cz.tomasjanicek.bp.ui.elements.ChartPeriod
+import cz.tomasjanicek.bp.ui.elements.ChartPoint
 import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
+import cz.tomasjanicek.bp.ui.elements.LineChart
+import cz.tomasjanicek.bp.ui.elements.PeriodSelector
 import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.utils.DateUtils
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material3.AlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,14 +78,59 @@ fun MeasurementCategoryDetailScreen(
     navigationRouter: INavigationRouter,
     categoryId: Long,
     viewModel: MeasurementCategoryDetailViewModel = hiltViewModel()
-) {
-    val state by viewModel.uiState.collectAsState()
+) {    val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(categoryId) {
         viewModel.load(categoryId)
     }
 
+    // Stav pro zobrazení dialogu s nápovědou
+    var showHelpDialog by remember { mutableStateOf(false) }
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    // --- ZDE ZAČÍNÁ DIALOG S NÁPOVĚDOU ---
+    if (showHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            title = { Text("Nápověda k zobrazení grafu") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        "Aby byl graf vždy co nejpřehlednější, automaticky upravuje podrobnost zobrazených dat podle zvoleného období.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Column {
+                        Text(
+                            "• Den a Týden:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "U krátkých období vidíte každý jednotlivý záznam jako samostatný bod.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Column {
+                        Text(
+                            "• 30 dní a Rok:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "U delších období se data seskupují (agregují) a graf ukazuje jejich průměrné hodnoty (týdenní nebo měsíční). Díky tomu vidíte dlouhodobý trend, aniž by byl graf nepřehledný.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text("Rozumím")
+                }
+            }
+        )
+    }
 
     Scaffold(
         modifier = Modifier,
@@ -93,7 +148,6 @@ fun MeasurementCategoryDetailScreen(
                     val title = when (state) {
                         is MeasurementCategoryDetailUIState.Content ->
                             (state as MeasurementCategoryDetailUIState.Content).category.name
-
                         else -> "Načítání..."
                     }
                     Text(
@@ -111,8 +165,17 @@ fun MeasurementCategoryDetailScreen(
                         )
                     }
                 },
+                // --- PŘIDANÁ AKCE S OTAZNÍKEM ---
                 actions = {
-                    // Zde může být v budoucnu ikona pro úpravu kategorie
+                    // Zobrazíme ikonu jen pokud jsou data načtená a je co zobrazit v grafu
+                    if (state is MeasurementCategoryDetailUIState.Content && (state as MeasurementCategoryDetailUIState.Content).measurements.isNotEmpty()) {
+                        IconButton(onClick = { showHelpDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Outlined.HelpOutline,
+                                contentDescription = "Nápověda k grafu"
+                            )
+                        }
+                    }
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -130,11 +193,12 @@ fun MeasurementCategoryDetailScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "add"
+                    contentDescription = "Přidat měření"
                 )
             }
         }
     ) { innerPadding ->
+        // ... zbytek kódu (when(currentState)...) zůstává naprosto stejný ...
         when (val currentState = state) {
             MeasurementCategoryDetailUIState.Loading -> {
                 Column(
@@ -162,13 +226,28 @@ fun MeasurementCategoryDetailScreen(
             }
 
             is MeasurementCategoryDetailUIState.Content -> {
+                // Lokální stav pro graf (který parametr a období jsou vybrány)
+                var selectedFieldIdForChart by remember { mutableStateOf(currentState.fields.firstOrNull()?.id) }
+                var selectedPeriodForChart by remember { mutableStateOf(ChartPeriod.DAYS_30) }
+
                 LazyColumn(
                     modifier = Modifier
                         .padding(innerPadding)
-                        .padding(top = 8.dp)
                         .fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // --- NOVÁ SEKCE S GRAFEM ---
+                    item {
+                        MeasurementChartSection(
+                            content = currentState,
+                            selectedFieldId = selectedFieldIdForChart,
+                            selectedPeriod = selectedPeriodForChart,
+                            onFieldSelected = { selectedFieldIdForChart = it },
+                            onPeriodSelected = { selectedPeriodForChart = it }
+                        )
+                    }
+
+                    // --- SEZNAM ZÁZNAMŮ ---
                     if (currentState.measurements.isEmpty()) {
                         item {
                             Column(
@@ -217,6 +296,111 @@ fun MeasurementCategoryDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MeasurementChartSection(
+    content: MeasurementCategoryDetailUIState.Content,
+    selectedFieldId: Long?,
+    selectedPeriod: ChartPeriod,
+    onFieldSelected: (Long) -> Unit,
+    onPeriodSelected: (ChartPeriod) -> Unit
+) {
+    // Zobrazíme jen pokud máme co (alespoň 1 pole a nějaká měření)
+    if (content.fields.isEmpty() || content.measurements.isEmpty() || selectedFieldId == null) {
+        return // Pokud není co zobrazit, sekci přeskočíme
+    }
+
+    val selectedField = content.fields.firstOrNull { it.id == selectedFieldId } ?: return
+
+    // Vytvoříme body pro graf ze všech naměřených hodnot daného parametru
+    val chartPoints = remember(content.valuesByMeasurementId, selectedFieldId, content.measurements) {
+        val measurementTimes = content.measurements.associateBy({ it.id }, { it.measuredAt })
+        content.valuesByMeasurementId.values.asSequence().flatten()
+            .filter { it.fieldId == selectedFieldId }
+            .mapNotNull { value ->
+                measurementTimes[value.measurementId]?.let { time ->
+                    ChartPoint(xEpochMillis = time, y = value.value.toFloat())
+                }
+            }
+            .sortedBy { it.xEpochMillis }
+            .toList()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Trend hodnot",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        // --- VÝBĚR PARAMETRU (ExposedDropdownMenu) ---
+        var isDropdownExpanded by remember { mutableStateOf(false) }
+
+        if (content.fields.size > 1) { // Zobrazíme výběr jen pokud je z čeho vybírat
+            ExposedDropdownMenuBox(
+                expanded = isDropdownExpanded,
+                onExpandedChange = { isDropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = selectedField.label,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Zobrazený parametr") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = { isDropdownExpanded = false }
+                ) {
+                    content.fields.forEach { field ->
+                        DropdownMenuItem(
+                            text = { Text(field.label) },
+                            onClick = {
+                                onFieldSelected(field.id)
+                                isDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+
+        // --- VÝBĚR OBDOBÍ ---
+        PeriodSelector(
+            selected = selectedPeriod,
+            onSelected = onPeriodSelected,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // --- SAMOTNÝ GRAF ---
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+        ) {
+            LineChart(
+                points = chartPoints,
+                period = selectedPeriod,
+                yLimitMin = selectedField.minValue?.toFloat(),
+                yLimitMax = selectedField.maxValue?.toFloat(),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Divider(modifier = Modifier.padding(top = 16.dp))
+    }
+}
+
+
 /**
  * Zobrazuje jednu položku v seznamu měření s rozbalovacím detailem.
  */
@@ -237,7 +421,7 @@ private fun MeasurementListItem(
             .clickable { isExpanded = !isExpanded }
             .animateContentSize(animationSpec = spring()), // Plynulá animace
         colors = CardDefaults.cardColors(
-            containerColor = MyGreen.copy(alpha = 0.8f),
+            containerColor = MyGreen.copy(alpha = 0.2f),
             contentColor = MyBlack
         )
     ) {
@@ -254,7 +438,7 @@ private fun MeasurementListItem(
                     Text(
                         text = categoryName,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MyBlack
+                        color = MaterialTheme.colorScheme.primary
                     )
                     // Hlavní text – datum a čas
                     Text(
@@ -319,20 +503,13 @@ private fun MeasurementListItem(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onEditClick) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Upravit",
-                            tint = MyBlack,
-                            modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Edit, contentDescription = "Upravit", modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Upravit", color = MyBlack)
+                        Text("Upravit")
                     }
                     Spacer(Modifier.width(8.dp))
                     TextButton(onClick = onDeleteClick) {
-                        Icon(Icons.Outlined.Delete,
-                            contentDescription = "Smazat",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(20.dp))
+                        Icon(Icons.Outlined.Delete, contentDescription = "Smazat", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Smazat", color = MaterialTheme.colorScheme.error)
                     }
@@ -344,8 +521,11 @@ private fun MeasurementListItem(
 
 /**
  * UI model pro jednu naměřenou hodnotu.
+ * Přidáno fieldId pro snazší filtrování v grafu.
  */
 data class MeasurementValueDisplay(
+    val fieldId: Long,
+    val measurementId: Long,
     val label: String,      // např. "Systolický tlak"
     val unit: String? = null, // např. "mmHg"
     val value: Double       // např. "120"

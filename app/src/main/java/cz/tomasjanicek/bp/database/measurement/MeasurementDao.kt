@@ -99,4 +99,7 @@ interface MeasurementDao {
     WHERE m.categoryId = :categoryId
 """)
     fun getValuesByCategory(categoryId: Long): Flow<List<MeasurementValue>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllMeasurements(measurements: List<Measurement>)
 }

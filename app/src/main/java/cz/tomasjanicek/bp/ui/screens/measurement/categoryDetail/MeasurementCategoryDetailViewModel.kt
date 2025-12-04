@@ -19,26 +19,21 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class) // Potřebné pro flatMapLatest
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MeasurementCategoryDetailViewModel @Inject constructor(
     private val categoriesRepository: ILocalMeasurementCategoriesRepository,
     private val measurementsRepository: ILocalMeasurementsRepository
 ) : ViewModel() {
 
-    // Vstupní bod, který drží ID kategorie.
     private val categoryIdFlow = MutableStateFlow<Long>(0L)
 
-    // Hlavní UI State - je výsledkem reaktivního řetězce
     val uiState: StateFlow<MeasurementCategoryDetailUIState> =
-        // 1. Posloucháme na změny v `categoryIdFlow`
         categoryIdFlow.flatMapLatest { id ->
-            // 2. Pokud je ID neplatné, okamžitě vrátíme Error a nezatěžujeme databázi
             if (id <= 0L) {
                 return@flatMapLatest kotlinx.coroutines.flow.flowOf(MeasurementCategoryDetailUIState.Error)
             }
 
-            // 3. Pro platné ID zkombinujeme *nové* a *správné* Flow z databáze
             combine(
                 categoriesRepository.getCategoryWithFieldsById(id),
                 measurementsRepository.getMeasurementsByCategory(id),
@@ -49,7 +44,6 @@ class MeasurementCategoryDetailViewModel @Inject constructor(
                     return@combine MeasurementCategoryDetailUIState.Error
                 }
 
-                // Přemapování hodnot na zobrazitelný model (tento kód už znáš)
                 val valuesByMeasurementId: Map<Long, List<MeasurementValueDisplay>> =
                     measurements
                         .filter { it.id != 0L }
@@ -57,7 +51,10 @@ class MeasurementCategoryDetailViewModel @Inject constructor(
                             val mValues = rawValues.filter { it.measurementId == measurement.id }
                             val displayList = mValues.map { v ->
                                 val field = categoryWithFields.fields.firstOrNull { f -> f.id == v.categoryFieldId }
+                                // --- ZDE JE OPRAVA ---
                                 MeasurementValueDisplay(
+                                    fieldId = v.categoryFieldId,         // <-- PŘIDÁNO
+                                    measurementId = v.measurementId,   // <-- PŘIDÁNO
                                     label = field?.label ?: "Hodnota",
                                     unit = field?.unit,
                                     value = v.value
@@ -66,7 +63,6 @@ class MeasurementCategoryDetailViewModel @Inject constructor(
                             measurement.id to displayList
                         }
 
-                // Vrátíme úspěšný stav s nejčerstvějšími daty
                 MeasurementCategoryDetailUIState.Content(
                     category = categoryWithFields.category,
                     measurements = measurements,
@@ -77,19 +73,13 @@ class MeasurementCategoryDetailViewModel @Inject constructor(
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = MeasurementCategoryDetailUIState.Loading // Počáteční stav je vždy Loading
+            initialValue = MeasurementCategoryDetailUIState.Loading
         )
 
-    /**
-     * Tato metoda pouze "nastartuje" reaktivní řetězec tím, že nastaví ID kategorie.
-     */
     fun load(categoryId: Long) {
         categoryIdFlow.value = categoryId
     }
 
-    /**
-     * Smazání je teď mnohem jednodušší. Jen smažeme a UI se aktualizuje samo!
-     */
     fun deleteMeasurement(measurement: Measurement) {
         viewModelScope.launch {
             try {

@@ -2,6 +2,7 @@ package cz.tomasjanicek.bp.model
 
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import kotlin.random.Random
 
 /**
  * Tento soubor obsahuje ukázková data pro použití v náhledech a pro testování.
@@ -125,3 +126,132 @@ val sampleExaminations = listOf(
         note = "Zrušeno z důvodu nemoci."
     )
 )
+
+// --- Kategorie 1: Tělesná váha ---
+val sampleCategoryWeight = MeasurementCategory(
+    id = 1,
+    name = "Tělesná váha",
+    description = "Sledování hmotnosti v průběhu času."
+)
+val sampleFieldWeight = MeasurementCategoryField(
+    id = 1,
+    categoryId = 1,
+    name = "weight",
+    label = "Váha",
+    unit = "kg",
+    minValue = 75.0,
+    maxValue = 85.0
+)
+
+// --- Kategorie 2: Krevní tlak ---
+val sampleCategoryBloodPressure = MeasurementCategory(
+    id = 2,
+    name = "Krevní tlak",
+    description = "Pravidelné měření systolického a diastolického tlaku a tepové frekvence."
+)
+val sampleFieldsBloodPressure = listOf(
+    MeasurementCategoryField(
+        id = 2,
+        categoryId = 2,
+        name = "systolic",
+        label = "Systolický tlak",
+        unit = "mmHg",
+        minValue = 110.0,
+        maxValue = 130.0
+    ),
+    MeasurementCategoryField(
+        id = 3,
+        categoryId = 2,
+        name = "diastolic",
+        label = "Diastolický tlak",
+        unit = "mmHg",
+        minValue = 70.0,
+        maxValue = 85.0
+    ),
+    MeasurementCategoryField(
+        id = 4,
+        categoryId = 2,
+        name = "pulse",
+        label = "Tepová frekvence",
+        unit = "bpm",
+        minValue = 60.0,
+        maxValue = 90.0
+    )
+)
+
+// --- Generování ukázkových měření a jejich hodnot ---
+
+// Funkce pro generování dat
+fun generateSampleMeasurementsAndValues(): Pair<List<Measurement>, List<MeasurementValue>> {
+    val measurements = mutableListOf<Measurement>()
+    val values = mutableListOf<MeasurementValue>()
+    var measurementIdCounter = 1L
+
+    // Data pro VÁHU (ID kategorie 1)
+    // Generujeme data za poslední rok, cca každých 5 dní
+    for (i in 0..73) { // 365 / 5 = 73
+        val date = LocalDateTime.now().minusDays(i * 5L)
+        val measurement = Measurement(
+            id = measurementIdCounter,
+            categoryId = 1,
+            measuredAt = date.toEpochSecond(ZoneOffset.UTC) * 1000
+        )
+        measurements.add(measurement)
+
+        // Náhodná hodnota váhy kolem 82 kg s výkyvy
+        val weightValue = 82.0 + Random.nextDouble(-4.0, 4.0)
+        values.add(
+            MeasurementValue(
+                measurementId = measurementIdCounter,
+                categoryFieldId = 1, // ID pole pro "Váha"
+                value = "%.1f".format(weightValue).replace(",", ".").toDouble()
+            )
+        )
+        measurementIdCounter++
+    }
+
+    // Data pro KREVNÍ TLAK (ID kategorie 2)
+    // Generujeme data za poslední rok, cca každých 7 dní
+    for (i in 0..52) { // 365 / 7 = 52
+        val date = LocalDateTime.now().minusDays(i * 7L).withHour(Random.nextInt(7, 21))
+        val measurement = Measurement(
+            id = measurementIdCounter,
+            categoryId = 2,
+            measuredAt = date.toEpochSecond(ZoneOffset.UTC) * 1000
+        )
+        measurements.add(measurement)
+
+        // Náhodné hodnoty tlaku a pulsu
+        val systolicValue = 125.0 + Random.nextDouble(-15.0, 15.0)
+        val diastolicValue = 80.0 + Random.nextDouble(-10.0, 10.0)
+        val pulseValue = 75.0 + Random.nextDouble(-15.0, 15.0)
+
+        // Systolický tlak (ID pole 2)
+        values.add(
+            MeasurementValue(
+                measurementId = measurementIdCounter,
+                categoryFieldId = 2,
+                value = systolicValue.toLong().toDouble()
+            )
+        )
+        // Diastolický tlak (ID pole 3)
+        values.add(
+            MeasurementValue(
+                measurementId = measurementIdCounter,
+                categoryFieldId = 3,
+                value = diastolicValue.toLong().toDouble()
+            )
+        )
+        // Tepová frekvence (ID pole 4)
+        values.add(
+            MeasurementValue(
+                measurementId = measurementIdCounter,
+                categoryFieldId = 4,
+                value = pulseValue.toLong().toDouble()
+            )
+        )
+        measurementIdCounter++
+    }
+
+    return Pair(measurements, values)
+}

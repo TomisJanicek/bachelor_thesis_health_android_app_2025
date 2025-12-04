@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.ChartPoint
 import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
-import cz.tomasjanicek.bp.ui.elements.LineChartWithControlsDemo
 
 // ---------- Hlavní screen: graf + filtry + spodní menu ----------
 
@@ -76,7 +75,7 @@ fun DemoScreen(
                 .fillMaxSize()
         ) {
             // 🟣 GRAF
-            LineChartWithControlsDemo(allPoints = data)
+            //LineChartWithControlsDemo(allPoints = data)
 
             Spacer(modifier = Modifier.height(24.dp))
 
