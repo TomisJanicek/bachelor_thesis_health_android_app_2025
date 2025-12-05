@@ -10,12 +10,15 @@ import cz.tomasjanicek.bp.database.examination.ExaminationDao
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementDao
+import cz.tomasjanicek.bp.database.medicine.MedicineDao
 import cz.tomasjanicek.bp.model.Doctor
 import cz.tomasjanicek.bp.model.Examination
 import cz.tomasjanicek.bp.model.Measurement
 import cz.tomasjanicek.bp.model.MeasurementCategory
 import cz.tomasjanicek.bp.model.MeasurementCategoryField
 import cz.tomasjanicek.bp.model.MeasurementValue
+import cz.tomasjanicek.bp.model.Medicine
+import cz.tomasjanicek.bp.model.MedicineReminder
 import cz.tomasjanicek.bp.model.generateSampleMeasurementsAndValues
 import cz.tomasjanicek.bp.model.sampleCategoryBloodPressure
 import cz.tomasjanicek.bp.model.sampleCategoryWeight
@@ -28,16 +31,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-entities = [
-Doctor::class,
-Examination::class,
-MeasurementCategory::class,
-MeasurementCategoryField::class,
-Measurement::class,
-MeasurementValue::class
-],
-version = 6,
-exportSchema = true
+    entities = [
+        Doctor::class,
+        Examination::class,
+        MeasurementCategory::class,
+        MeasurementCategoryField::class,
+        Measurement::class,
+        MeasurementValue::class,
+        Medicine::class, // <-- PŘIDÁNO
+        MedicineReminder::class // <-- PŘIDÁNO
+    ],
+    version = 8,
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -45,6 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun examinationDao(): ExaminationDao
     abstract fun measurementCategoryDao(): MeasurementCategoryDao
     abstract fun measurementDao(): MeasurementDao
+    abstract fun medicineDao(): MedicineDao
 
     companion object {
         @Volatile

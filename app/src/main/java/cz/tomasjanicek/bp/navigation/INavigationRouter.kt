@@ -34,4 +34,9 @@ interface INavigationRouter {
     fun navigateToMeasurementCategoryDetail(categoryId: Long)
 
 
+    /** Naviguje na hlavní obrazovku se seznamem léků. */
+    fun navigateToMedicineList()
+
+    /** Naviguje na obrazovku pro přidání/úpravu léku. */
+    fun navigateToAddEditMedicine(medicineId: Long? = null)
 }

@@ -69,6 +69,7 @@ fun CustomBottomBar(
                     when (index) {
                         0 -> navigationRouter.navigaTetoListOfExaminationView()
                         1 -> navigationRouter.navigateToListOfMeasurementCategories()
+                        2 -> navigationRouter.navigateToMedicineList()
                         4 -> navigationRouter.navigateToDemoScreen()
                     }
                 },

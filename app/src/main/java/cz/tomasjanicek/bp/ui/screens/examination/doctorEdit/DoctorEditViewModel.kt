@@ -1,17 +1,12 @@
 package cz.tomasjanicek.bp.ui.screens.examination.doctorEdit
 
-import androidx.activity.result.launch
-import androidx.compose.animation.core.copy
-import androidx.compose.ui.test.cancel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.tomasjanicek.bp.R
 import cz.tomasjanicek.bp.database.doctor.ILocalDoctorsRepository
-import cz.tomasjanicek.bp.geo.getAddressFromCoordinates
-import cz.tomasjanicek.bp.navigation.INavigationRouter
+import cz.tomasjanicek.bp.services.getAddressFromCoordinates
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,7 +14,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.distinctUntilChanged
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.distinctUntilChanged
 

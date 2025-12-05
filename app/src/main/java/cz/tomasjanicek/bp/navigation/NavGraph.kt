@@ -20,6 +20,8 @@ import cz.tomasjanicek.bp.ui.screens.measurement.addEditCategory.AddEditCategory
 import cz.tomasjanicek.bp.ui.screens.measurement.addEditMeasurement.AddEditMeasurementScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCategoryDetailScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.list.ListOfMeasurementCategory
+import cz.tomasjanicek.bp.ui.screens.medicine.addEdit.AddEditMedicineScreen
+import cz.tomasjanicek.bp.ui.screens.medicine.list.MedicineListScreen
 
 @Composable
 fun NavGraph(
@@ -199,6 +201,29 @@ fun NavGraph(
                 navigationRouter = navigationRouter,
                 categoryId = categoryId
             )
+        }
+        // Hlavní obrazovka léků
+        composable(Destination.MedicineListScreen.route) {
+            MedicineListScreen(navigationRouter = navigationRouter, currentScreenIndex = 2) // TODO: index podle bottom baru
+        }
+
+        // Obrazovka pro přidání léku
+        composable(Destination.AddEditMedicineScreen.route) {
+            AddEditMedicineScreen(navigationRouter = navigationRouter, medicineId = null)
+        }
+
+        // Obrazovka pro úpravu léku
+        composable(
+            route = Destination.AddEditMedicineScreen.route + "/{medicineId}",
+            arguments = listOf(
+                navArgument("medicineId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("medicineId")
+            AddEditMedicineScreen(navigationRouter = navigationRouter, medicineId = id)
         }
     }
 }

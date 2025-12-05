@@ -5,6 +5,7 @@ import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementDao
+import cz.tomasjanicek.bp.database.medicine.MedicineDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,4 +33,8 @@ object DaoModule {
     @Singleton
     fun provideMeasurementDao(db: AppDatabase): MeasurementDao =
         db.measurementDao()
+
+    @Provides
+    @Singleton
+    fun provideMedicineDao(db: AppDatabase): MedicineDao = db.medicineDao() // <-- 2. Poskytnutí DAO
 }

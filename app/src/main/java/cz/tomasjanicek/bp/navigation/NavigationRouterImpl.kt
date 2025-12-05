@@ -94,4 +94,18 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
             Destination.MeasurementCategoryDetailScreen.route + "/$categoryId"
         )
     }
+
+    // --- DOPLNĚNO ---
+    override fun navigateToMedicineList() {
+        navController.navigate(Destination.MedicineListScreen.route)
+    }
+
+    override fun navigateToAddEditMedicine(medicineId: Long?) {
+        val route = if (medicineId != null) {
+            "${Destination.AddEditMedicineScreen.route}/$medicineId"
+        } else {
+            Destination.AddEditMedicineScreen.route
+        }
+        navController.navigate(route)
+    }
 }

@@ -27,4 +27,10 @@ sealed class Destination(val route: String) {
 
     object MeasurementCategoryDetailScreen :
         Destination("measurement_category_detail_screen")
+
+    /** Seznam dnešních připomínek léků. */
+    object MedicineListScreen : Destination("medicine_list_screen")
+
+    /** Obrazovka pro přidání nebo úpravu léku. */
+    object AddEditMedicineScreen : Destination("add_edit_medicine_screen")
 }

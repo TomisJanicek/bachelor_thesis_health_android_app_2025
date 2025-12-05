@@ -12,6 +12,9 @@ import cz.tomasjanicek.bp.database.measurement.LocalMeasurementCategoriesReposit
 import cz.tomasjanicek.bp.database.measurement.LocalMeasurementsRepositoryImpl
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementDao
+import cz.tomasjanicek.bp.database.medicine.IMedicineRepository
+import cz.tomasjanicek.bp.database.medicine.LocalMedicineRepositoryImpl
+import cz.tomasjanicek.bp.database.medicine.MedicineDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -47,4 +50,10 @@ object RepositoryModule {
         dao: MeasurementDao
     ): ILocalMeasurementsRepository =
         LocalMeasurementsRepositoryImpl(dao)
+
+    @Provides
+    @Singleton
+    fun provideMedicineRepository(
+        dao: MedicineDao
+    ): IMedicineRepository = LocalMedicineRepositoryImpl(dao)
 }

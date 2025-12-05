@@ -1,9 +1,8 @@
-package cz.tomasjanicek.bp.geo
+package cz.tomasjanicek.bp.services
 
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
-import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
