@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import cz.tomasjanicek.bp.ui.screens.DemoScreen
+import cz.tomasjanicek.bp.ui.screens.cycle.CycleScreen
 import cz.tomasjanicek.bp.ui.screens.examination.addEdit.AddEditExaminationScreen
 import cz.tomasjanicek.bp.ui.screens.examination.detail.DetailOfExaminationScreen
 import cz.tomasjanicek.bp.ui.screens.examination.doctorEdit.DoctorEditScreen
@@ -36,8 +36,8 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable(Destination.DemoScreen.route) {
-            DemoScreen(navigationRouter = navigationRouter, currentScreenIndex = 4)
+        composable(Destination.CycleScreen.route) {
+            CycleScreen(navigationRouter = navigationRouter, currentScreenIndex = 4)
         }
 
         composable(Destination.ListOfExaminationView.route) {

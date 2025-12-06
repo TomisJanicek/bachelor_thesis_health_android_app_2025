@@ -29,17 +29,17 @@ import java.util.Locale
 class PdfExporter(private val context: Context) {
 
     private val TAG = "PDF_EXPORT_LOG"
-
     private val pageHeight = 1120
     private val pageWidth = 792
     private val margin = 40f
     private val contentWidth = pageWidth - 2 * margin
+    private val lineHeight = 20f // Výška jednoho řádku v tabulce
 
-    // ... (painty zůstávají stejné) ...
-    private val titlePaint = Paint().apply { /* ... */ }
-    private val headerPaint = Paint().apply { /* ... */ }
-    private val bodyPaint = Paint().apply { /* ... */ }
-    private val tableHeaderPaint = Paint().apply { /* ... */ }
+    // ... definice Paint objektů (zůstávají stejné) ...
+    private val titlePaint = Paint().apply { color = Color.BLACK; textSize = 24f; isFakeBoldText = true }
+    private val headerPaint = Paint().apply { color = Color.BLACK; textSize = 18f; isFakeBoldText = true }
+    private val bodyPaint = Paint().apply { color = Color.DKGRAY; textSize = 14f }
+    private val tableHeaderPaint = Paint().apply { color = Color.BLACK; textSize = 14f; isFakeBoldText = true }
 
 
     fun exportStatsToPdf(
@@ -52,47 +52,40 @@ class PdfExporter(private val context: Context) {
         val document = PdfDocument()
         val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create()
 
-        // --- ZMĚNA: Začínáme s první stránkou ---
-        var currentPage = document.startPage(pageInfo)
-        var canvas = currentPage.canvas
-        var yPos = margin + 20
+        // --- ZDE JE KLÍČOVÁ OPRAVA ---
+        // 1. Vytvoříme stránku POUZE JEDNOU
+        val firstPage = document.startPage(pageInfo)
 
-        // 1. Hlavička dokumentu (jen na první stránce)
-        canvas.drawText("Export statistik měření", margin, yPos, titlePaint)
-        yPos += 30
+        // 2. Vytvoříme PageState s touto jednou stránkou a jejím canvasem
+        var pageState = PageState(
+            currentPage = firstPage,
+            canvas = firstPage.canvas,
+            yPos = margin + 20
+        )
+
+        // Hlavička dokumentu
+        pageState.canvas.drawText("Export statistik měření", margin, pageState.yPos, titlePaint)
+        pageState.yPos += 30
         // ... (zbytek hlavičky)
         val dateRangeText = when (periodType) {
-            StatsPeriodType.CUSTOM -> "Období: ${startDate.format(DateTimeFormatter.ofPattern("d.M.yy"))} - ${endDate.format(
-                DateTimeFormatter.ofPattern("d.M.yy"))}"
+            StatsPeriodType.CUSTOM -> "Období: ${startDate.format(DateTimeFormatter.ofPattern("d.M.yy"))} - ${endDate.format(DateTimeFormatter.ofPattern("d.M.yy"))}"
             else -> "Období: ${periodType.label}"
         }
-        canvas.drawText(dateRangeText, margin, yPos, bodyPaint)
-        yPos += 20
-        canvas.drawText("Exportováno dne: ${SimpleDateFormat("d. M. yyyy HH:mm",
-            Locale.getDefault()).format(Date())}", margin, yPos, bodyPaint)
-        yPos += 50
+        pageState.canvas.drawText(dateRangeText, margin, pageState.yPos, bodyPaint)
+        pageState.yPos += 20
+        pageState.canvas.drawText("Exportováno dne: ${SimpleDateFormat("d. M. yyyy HH:mm", Locale.getDefault()).format(Date())}", margin, pageState.yPos, bodyPaint)
+        pageState.yPos += 50
 
-
-        // 2. Kreslení dat
+        // Kreslení dat
         chartData.forEach { data ->
-            // --- KONTROLA MÍSTA PRO CELOU KATEGORII ---
-            // Odhad místa: 50px pro nadpis + (320px na parametr) * počet parametrů
             val estimatedHeightForCategory = 50 + (data.categoryWithFields.fields.size * 320)
-            if (yPos + estimatedHeightForCategory > pageHeight - margin) {
-                // --- ZMĚNA: Správné ukončení staré stránky a vytvoření nové ---
-                document.finishPage(currentPage)
-                currentPage = document.startPage(pageInfo)
-                canvas = currentPage.canvas // <- KLÍČOVÉ: Získáme nový canvas pro novou stránku!
-                yPos = margin
-                drawPageHeader(canvas) // Nakreslíme hlavičku "pokračování"
-                yPos += 40
+            if (pageState.yPos + estimatedHeightForCategory > pageHeight - margin) {
+                pageState = createNewPage(document, pageState, pageInfo)
             }
 
-            // Název kategorie
-            canvas.drawText(data.categoryWithFields.category.name, margin, yPos, headerPaint)
-            yPos += 30
+            pageState.canvas.drawText(data.categoryWithFields.category.name, margin, pageState.yPos, headerPaint)
+            pageState.yPos += 30
 
-            // Grafy a tabulky pro jednotlivé parametry
             data.categoryWithFields.fields.forEach { field ->
                 val entries = data.measurementsWithValues.mapNotNull { m ->
                     m.values.find { v -> v.categoryFieldId == field.id }?.let { value ->
@@ -101,51 +94,49 @@ class PdfExporter(private val context: Context) {
                 }.sortedBy { it.x }
 
                 if (entries.isNotEmpty()) {
-                    // --- KONTROLA MÍSTA PRO JEDEN PARAMETR (GRAF + TABULKA) ---
-                    val estimatedHeightForField = 320f // Pevný odhad pro graf a pár řádků tabulky
-                    if (yPos + estimatedHeightForField > pageHeight - margin) {
-                        // --- ZMĚNA: Správné ukončení staré stránky a vytvoření nové ---
-                        document.finishPage(currentPage)
-                        currentPage = document.startPage(pageInfo)
-                        canvas = currentPage.canvas // <- KLÍČOVÉ: Získáme nový canvas!
-                        yPos = margin
-                        drawPageHeader(canvas)
-                        yPos += 40
+                    val estimatedHeightForField = 320f
+                    if (pageState.yPos + estimatedHeightForField > pageHeight - margin) {
+                        pageState = createNewPage(document, pageState, pageInfo)
                     }
 
-                    drawChart(canvas, entries, field.label, yPos)
-                    yPos += 280
+                    drawChart(pageState.canvas, entries, field.label, pageState.yPos)
+                    pageState.yPos += 280
 
-                    yPos = drawDataTable(canvas, entries, field, yPos)
-                    yPos += 40
+                    // --- ZMĚNA: Předáváme celý stav a dokument ---
+                    pageState = drawDataTable(document, pageInfo, pageState, entries, field)
+                    pageState.yPos += 40
                 }
             }
         }
 
-        // --- ZMĚNA: Ukončení poslední aktivní stránky ---
-        document.finishPage(currentPage)
+        document.finishPage(pageState.currentPage)
         Log.d(TAG, "[2] Kreslení do PDF dokumentu dokončeno.")
 
-        // 3. Uložení souboru (tato část je už správně)
+        // Uložení souboru (zůstává stejné)
         return try {
             val file = File(context.cacheDir, "export_mereni_${System.currentTimeMillis()}.pdf")
-            Log.d(TAG, "[3] Vytvářím soubor v cestě: ${file.absolutePath}")
-
+            // ...
             val fos = FileOutputStream(file)
             document.writeTo(fos)
             document.close()
             fos.close()
-            Log.d(TAG, "[4] Soubor PDF úspěšně zapsán na disk.")
-
-            val authority = "${context.packageName}.provider"
-            Log.d(TAG, "[5] Získávám URI s autoritou: '$authority'")
-            FileProvider.getUriForFile(context, authority, file)
-
+            // ...
+            FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
         } catch (e: Exception) {
             Log.e(TAG, "[CHYBA] Selhání při ukládání souboru nebo získávání URI!", e)
-            e.printStackTrace()
             null
         }
+    }
+
+    // --- NOVÁ POMOCNÁ FUNKCE pro vytvoření nové stránky ---
+    private fun createNewPage(document: PdfDocument, oldPageState: PageState, pageInfo: PdfDocument.PageInfo): PageState {
+        document.finishPage(oldPageState.currentPage)
+        val newPage = document.startPage(pageInfo)
+        val newCanvas = newPage.canvas
+        var newYPos = margin
+        drawPageHeader(newCanvas)
+        newYPos += 40
+        return PageState(newPage, newCanvas, newYPos)
     }
 
     private fun drawPageHeader(canvas: Canvas) {
@@ -163,17 +154,19 @@ class PdfExporter(private val context: Context) {
             setDrawGridBackground(false)
             isDragEnabled = false
             setScaleEnabled(false)
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            xAxis.setDrawGridLines(false)
-            xAxis.valueFormatter = object : ValueFormatter() {
-                private val formatter = SimpleDateFormat("d.M", Locale.getDefault())
-                override fun getFormattedValue(value: Float): String {
-                    return formatter.format(Date(value.toLong()))
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                setDrawGridLines(false)
+                valueFormatter = object : ValueFormatter() {
+                    private val formatter = SimpleDateFormat("d.M", Locale.getDefault())
+                    override fun getFormattedValue(value: Float): String = formatter.format(Date(value.toLong()))
                 }
             }
             axisRight.isEnabled = false
-            axisLeft.setDrawGridLines(true)
-            axisLeft.gridColor = Color.LTGRAY
+            axisLeft.apply {
+                setDrawGridLines(true)
+                gridColor = Color.LTGRAY
+            }
             val dataSet = LineDataSet(entries, label).apply {
                 color = Color.parseColor("#E91E63") // MyPink
                 setCircleColor(color)
@@ -183,26 +176,52 @@ class PdfExporter(private val context: Context) {
             }
             this.data = LineData(dataSet)
         }
+
+        // Správné pořadí: save -> translate -> draw -> restore
         canvas.save()
         canvas.translate(margin, yPos)
-        chart.draw(canvas)
+        chart.draw(canvas) // <-- Kreslení musí být ZDE
         canvas.restore()
     }
 
-    private fun drawDataTable(canvas: Canvas, entries: List<Entry>, field: cz.tomasjanicek.bp.model.MeasurementCategoryField, yPos: Float): Float {
-        var currentY = yPos
+    // --- ZCELA PŘEPRACOVANÁ FUNKCE `drawDataTable` ---
+    private fun drawDataTable(
+        document: PdfDocument,
+        pageInfo: PdfDocument.PageInfo,
+        initialState: PageState,
+        entries: List<Entry>,
+        field: cz.tomasjanicek.bp.model.MeasurementCategoryField
+    ): PageState {
+        var currentState = initialState.copy()
         val col1X = margin
         val col2X = margin + 250
-        canvas.drawText("Datum", col1X, currentY, tableHeaderPaint)
-        canvas.drawText("Hodnota (${field.unit ?: ""})", col2X, currentY, tableHeaderPaint)
-        currentY += 25
+
+        // Kontrola místa pro hlavičku
+        if (currentState.yPos + lineHeight > pageHeight - margin) {
+            currentState = createNewPage(document, currentState, pageInfo)
+        }
+        currentState.canvas.drawText("Datum", col1X, currentState.yPos, tableHeaderPaint)
+        currentState.canvas.drawText("Hodnota (${field.unit ?: ""})", col2X, currentState.yPos, tableHeaderPaint)
+        currentState.yPos += 25
+
+        // Kreslení řádků
         entries.forEach { entry ->
+            // Kontrola místa pro další řádek
+            if (currentState.yPos + lineHeight > pageHeight - margin) {
+                currentState = createNewPage(document, currentState, pageInfo)
+            }
             val dateStr = SimpleDateFormat("d. M. yyyy HH:mm", Locale.getDefault()).format(Date(entry.x.toLong()))
             val valueStr = String.format(Locale.US, "%.2f", entry.y)
-            canvas.drawText(dateStr, col1X, currentY, bodyPaint)
-            canvas.drawText(valueStr, col2X, currentY, bodyPaint)
-            currentY += 20
+            currentState.canvas.drawText(dateStr, col1X, currentState.yPos, bodyPaint)
+            currentState.canvas.drawText(valueStr, col2X, currentState.yPos, bodyPaint)
+            currentState.yPos += lineHeight
         }
-        return currentY
+        return currentState
     }
 }
+
+private data class PageState(
+    var currentPage: PdfDocument.Page,
+    var canvas: Canvas,
+    var yPos: Float
+)

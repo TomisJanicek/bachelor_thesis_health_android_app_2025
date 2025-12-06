@@ -1,6 +1,9 @@
 package cz.tomasjanicek.bp.di
 
 import cz.tomasjanicek.bp.database.AppDatabase
+import cz.tomasjanicek.bp.database.cycle.CycleRecordDao
+import cz.tomasjanicek.bp.database.cycle.CycleRepositoryImpl
+import cz.tomasjanicek.bp.database.cycle.ICycleRepository
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
@@ -36,5 +39,10 @@ object DaoModule {
 
     @Provides
     @Singleton
-    fun provideMedicineDao(db: AppDatabase): MedicineDao = db.medicineDao() // <-- 2. Poskytnutí DAO
+    fun provideMedicineDao(db: AppDatabase): MedicineDao = db.medicineDao()
+
+    @Provides
+    @Singleton
+    fun provideCycleRecordDao(db: AppDatabase): CycleRecordDao = db.cycleRecordDao()
+
 }

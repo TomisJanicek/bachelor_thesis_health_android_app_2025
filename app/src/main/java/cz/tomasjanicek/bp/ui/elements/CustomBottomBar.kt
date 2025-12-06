@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +48,7 @@ fun CustomBottomBar(
         BottomNavigationItem("Měření",      Icons.Filled.MonitorHeart),
         BottomNavigationItem("Léky",        Icons.Filled.Medication),
         BottomNavigationItem("Statistiky",  Icons.Filled.BarChart),
-        BottomNavigationItem("Demo",  Icons.Filled.Alarm) //Připomínky
+        BottomNavigationItem("Cyklus",      Icons.Filled.WaterDrop) //Připomínky
     )
 
     var selectedItemIndex by rememberSaveable { mutableStateOf(currentScreenIndex) }
@@ -71,7 +72,7 @@ fun CustomBottomBar(
                         1 -> navigationRouter.navigateToListOfMeasurementCategories()
                         2 -> navigationRouter.navigateToMedicineList()
                         3 -> navigationRouter.navigateToStatsScreen()
-                        4 -> navigationRouter.navigateToDemoScreen()
+                        4 -> navigationRouter.navigateToCycleScreen()
                     }
                 },
                 icon = {

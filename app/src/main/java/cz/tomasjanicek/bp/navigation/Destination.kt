@@ -12,7 +12,6 @@ sealed class Destination(val route: String) {
 
     object MapSelectorScreen: Destination("map_selector")
 
-    // 🔹 NOVÉ – měření
     object ListOfMeasurementCategoryScreen :
         Destination("list_of_measurement_category_screen")
 
@@ -36,4 +35,7 @@ sealed class Destination(val route: String) {
 
     /** NOVÁ DESTINACE: Obrazovka pro statistiky. */
     object StatsScreen : Destination("stats_screen")
+
+    /** NOVÁ DESTINACE: Obrazovka pro sledování cyklu. */
+    object CycleScreen : Destination("cycle_screen")
 }

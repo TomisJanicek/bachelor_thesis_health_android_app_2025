@@ -1,5 +1,8 @@
 package cz.tomasjanicek.bp.di
 
+import cz.tomasjanicek.bp.database.cycle.CycleRecordDao
+import cz.tomasjanicek.bp.database.cycle.CycleRepositoryImpl
+import cz.tomasjanicek.bp.database.cycle.ICycleRepository
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.doctor.ILocalDoctorsRepository
 import cz.tomasjanicek.bp.database.doctor.LocalDoctorsRepositoryImpl
@@ -56,4 +59,10 @@ object RepositoryModule {
     fun provideMedicineRepository(
         dao: MedicineDao
     ): IMedicineRepository = LocalMedicineRepositoryImpl(dao)
+
+    @Provides
+    @Singleton
+    fun provideCycleRepository(
+        dao: CycleRecordDao
+    ): ICycleRepository = CycleRepositoryImpl(dao)
 }

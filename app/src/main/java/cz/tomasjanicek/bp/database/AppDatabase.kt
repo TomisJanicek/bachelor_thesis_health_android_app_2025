@@ -5,12 +5,15 @@ import androidx.activity.result.launch
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
+import cz.tomasjanicek.bp.database.cycle.CycleRecordDao
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementDao
 import cz.tomasjanicek.bp.database.medicine.MedicineDao
+import cz.tomasjanicek.bp.model.CycleRecord
 import cz.tomasjanicek.bp.model.Doctor
 import cz.tomasjanicek.bp.model.Examination
 import cz.tomasjanicek.bp.model.Measurement
@@ -26,6 +29,7 @@ import cz.tomasjanicek.bp.model.sampleDoctors
 import cz.tomasjanicek.bp.model.sampleExaminations
 import cz.tomasjanicek.bp.model.sampleFieldWeight
 import cz.tomasjanicek.bp.model.sampleFieldsBloodPressure
+import cz.tomasjanicek.bp.services.Converters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,12 +42,14 @@ import kotlinx.coroutines.launch
         MeasurementCategoryField::class,
         Measurement::class,
         MeasurementValue::class,
-        Medicine::class, // <-- PŘIDÁNO
-        MedicineReminder::class // <-- PŘIDÁNO
+        Medicine::class,
+        MedicineReminder::class,
+        CycleRecord::class
     ],
-    version = 8,
+    version = 10,
     exportSchema = true
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun doctorDao(): DoctorDao
@@ -51,6 +57,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun measurementCategoryDao(): MeasurementCategoryDao
     abstract fun measurementDao(): MeasurementDao
     abstract fun medicineDao(): MedicineDao
+    abstract fun cycleRecordDao(): CycleRecordDao
 
     companion object {
         @Volatile
@@ -63,8 +70,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "health_app_database"
                 )
-                    // Při změně schématu (přidání min/max) zničí starou DB a vytvoří novou
-                    // Pro vývoj ideální, pro produkci by se řešila migrace.
+                    // fallbackToDestructiveMigration() zajistí, že se při zvýšení verze
+                    // stará databáze smaže a vytvoří se nová. Pro vývoj je to ideální.
                     .fallbackToDestructiveMigration()
                     .build()
 
@@ -81,6 +88,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         /**
          * Naplní databázi ukázkovými daty, pokud je prázdná.
+         * Tuto funkci neměníme, data pro cyklus jsou specifická pro uživatele.
          */
         private suspend fun prepopulateIfEmpty(database: AppDatabase) {
             // Získáme DAO objekty
@@ -104,7 +112,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // Vygenerujeme a vložíme měření a jejich hodnoty
                 val (measurements, values) = generateSampleMeasurementsAndValues()
-                measurementDao.insertAllMeasurements(measurements) // Předpokládá existenci této metody
+                measurementDao.insertAllMeasurements(measurements)
                 measurementDao.insertValues(values)
             }
         }

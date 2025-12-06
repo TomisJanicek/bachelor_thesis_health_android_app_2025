@@ -42,4 +42,7 @@ interface INavigationRouter {
 
     /** Naviguje na obrazovku se statistikami. */
     fun navigateToStatsScreen()
+
+    /** Naviguje na obrazovku pro sledování cyklu. */
+    fun navigateToCycleScreen()
 }
