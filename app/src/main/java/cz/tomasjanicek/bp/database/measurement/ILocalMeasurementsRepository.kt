@@ -33,6 +33,10 @@ interface ILocalMeasurementsRepository {
 
     suspend fun deleteAllMeasurements()
 
+    /** NOVÁ METODA: Načte měření s hodnotami v daném časovém rozsahu. */
+    fun getMeasurementsWithValuesBetween(startDate: Long, endDate: Long): Flow<List<MeasurementWithValues>>
+
+
     fun getValuesByCategory(categoryId: Long): Flow<List<MeasurementValue>>
 
 }

@@ -49,6 +49,13 @@ class LocalMeasurementsRepositoryImpl @Inject constructor(
         measurementDao.deleteAllMeasurements()
     }
 
+    override fun getMeasurementsWithValuesBetween(
+        startDate: Long,
+        endDate: Long
+    ): Flow<List<MeasurementWithValues>> {
+        return measurementDao.getMeasurementsWithValuesBetween(startDate, endDate)
+    }
+
     override fun getValuesByCategory(categoryId: Long): Flow<List<MeasurementValue>> =
         measurementDao.getValuesByCategory(categoryId)
 }

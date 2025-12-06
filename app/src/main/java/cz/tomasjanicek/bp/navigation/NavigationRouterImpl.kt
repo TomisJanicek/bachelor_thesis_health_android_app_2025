@@ -108,4 +108,8 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
         }
         navController.navigate(route)
     }
+
+    override fun navigateToStatsScreen() {
+        navController.navigate(Destination.StatsScreen.route)
+    }
 }

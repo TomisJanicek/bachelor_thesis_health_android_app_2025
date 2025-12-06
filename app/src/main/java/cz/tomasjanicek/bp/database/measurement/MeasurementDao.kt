@@ -102,4 +102,16 @@ interface MeasurementDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllMeasurements(measurements: List<Measurement>)
+
+    /**
+     * NOVÁ METODA: Načte všechna měření s jejich hodnotami v zadaném časovém rozsahu.
+     */
+    @Transaction
+    @Query("""
+        SELECT * FROM measurements
+        WHERE measuredAt BETWEEN :startDate AND :endDate
+        ORDER BY measuredAt ASC
+    """)
+    fun getMeasurementsWithValuesBetween(startDate: Long, endDate: Long): Flow<List<MeasurementWithValues>>
+
 }

@@ -39,4 +39,7 @@ interface INavigationRouter {
 
     /** Naviguje na obrazovku pro přidání/úpravu léku. */
     fun navigateToAddEditMedicine(medicineId: Long? = null)
+
+    /** Naviguje na obrazovku se statistikami. */
+    fun navigateToStatsScreen()
 }

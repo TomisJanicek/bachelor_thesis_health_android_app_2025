@@ -180,6 +180,9 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
     implementation(libs.play.services.location)
+
+
+    implementation(libs.mpandroidchart)
 }
 
 // For Hilt

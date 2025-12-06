@@ -25,6 +25,7 @@ mockitoCore = "5.20.0"
 mockitoCoreVersion = "5.20.0"
 mockitoKotlin = "6.1.0"
 mockk = "1.14.6"
+mpandroidchart = "v3.1.0"
 playServicesLocation = "21.3.0"
 retrofit_v = "3.0.0"
 logging_v = "5.2.1"
@@ -97,6 +98,7 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore
 mockito-core-v500 = { module = "org.mockito:mockito-core", version.ref = "mockitoCoreVersion" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit_v" }
 retrofit-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit_v" }

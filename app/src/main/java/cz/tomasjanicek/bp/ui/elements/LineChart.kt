@@ -27,6 +27,7 @@ import cz.tomasjanicek.bp.ui.theme.MyWhite
 import kotlin.math.max
 import kotlin.math.min
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -50,18 +51,22 @@ enum class ChartPeriod(val label: String) {
 private fun processPointsForPeriod(
     points: List<ChartPoint>,
     period: ChartPeriod,
-    nowEpochMillis: Long = System.currentTimeMillis()
+    nowEpochMillis: Long = System.currentTimeMillis(),
+    customStart: Long? = null,
+    customEnd: Long? = null
 ): List<ChartPoint> {
     if (points.isEmpty()) return emptyList()
 
-    val start = when (period) {
+    val start = customStart ?: when (period) {
         ChartPeriod.DAY -> nowEpochMillis - ChronoUnit.DAYS.duration.toMillis()
         ChartPeriod.WEEK -> nowEpochMillis - ChronoUnit.DAYS.duration.toMillis() * 7
         ChartPeriod.DAYS_30 -> nowEpochMillis - ChronoUnit.DAYS.duration.toMillis() * 30
         ChartPeriod.YEAR -> nowEpochMillis - ChronoUnit.DAYS.duration.toMillis() * 365
     }
+    val end = customEnd ?: nowEpochMillis
 
-    val relevantPoints = points.filter { it.xEpochMillis in start..nowEpochMillis }
+    // Filtr nyní použije správný `start` a `end`
+    val relevantPoints = points.filter { it.xEpochMillis in start..end }
 
     return when (period) {
         // Pro krátká období vracíme všechny body
@@ -162,13 +167,28 @@ fun LineChart(
     modifier: Modifier = Modifier,
     yLimitMin: Float? = null,
     yLimitMax: Float? = null,
+    customStartDate: LocalDate? = null,
+    customEndDate: LocalDate? = null,
     padding: Dp = 12.dp,
     gridLines: Int = 4,
     zoneId: ZoneId = ZoneId.systemDefault(),
     yLabelFormatter: (Float) -> String = defaultYFormatter()
 ) {
-    val filtered = remember(points, period) { processPointsForPeriod(points, period) }
+    val (customStartMillis, customEndMillis) = remember(customStartDate, customEndDate) {
+        val start = customStartDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+        // Konec posuneme na konec dne, aby se zahrnula všechna data
+        val end = customEndDate?.atTime(23, 59, 59)?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+        start to end
+    }
 
+    val filtered = remember(points, period, customStartMillis, customEndMillis) {
+        processPointsForPeriod(
+            points = points,
+            period = period,
+            customStart = customStartMillis,
+            customEnd = customEndMillis
+        )
+    }
     val (yMin, yMax) = remember(filtered, yLimitMin, yLimitMax) {
         val dataMinY = filtered.minOfOrNull { it.y }
         val dataMaxY = filtered.maxOfOrNull { it.y }
@@ -192,13 +212,13 @@ fun LineChart(
     }
 
     val now = System.currentTimeMillis()
-    val xMin = when (period) {
+    val xMin = customStartMillis ?: when (period) {
         ChartPeriod.DAY -> now - ChronoUnit.DAYS.duration.toMillis()
         ChartPeriod.WEEK -> now - ChronoUnit.DAYS.duration.toMillis() * 7
         ChartPeriod.DAYS_30 -> now - ChronoUnit.DAYS.duration.toMillis() * 30
         ChartPeriod.YEAR -> now - ChronoUnit.DAYS.duration.toMillis() * 365
     }
-    val xMax = now
+    val xMax = customEndMillis ?: now
 
     val safeXRange = max(1L, xMax - xMin)
     val safeYRange = max(1e-6f, yMax - yMin)
@@ -238,7 +258,7 @@ fun LineChart(
                 Canvas(Modifier.fillMaxSize()) {
                     val w = size.width
                     val h = size.height
-                    val leftPad = 48f
+                    val leftPad = 64f
                     val bottomPad = 32f
                     val topPad = 12f
                     val rightPad = 12f

@@ -22,6 +22,7 @@ import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCateg
 import cz.tomasjanicek.bp.ui.screens.measurement.list.ListOfMeasurementCategory
 import cz.tomasjanicek.bp.ui.screens.medicine.addEdit.AddEditMedicineScreen
 import cz.tomasjanicek.bp.ui.screens.medicine.list.MedicineListScreen
+import cz.tomasjanicek.bp.ui.screens.stats.StatsScreen
 
 @Composable
 fun NavGraph(
@@ -224,6 +225,10 @@ fun NavGraph(
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getLong("medicineId")
             AddEditMedicineScreen(navigationRouter = navigationRouter, medicineId = id)
+        }
+
+        composable(Destination.StatsScreen.route) {
+            StatsScreen(navigationRouter = navigationRouter, currentScreenIndex = 3)
         }
     }
 }
