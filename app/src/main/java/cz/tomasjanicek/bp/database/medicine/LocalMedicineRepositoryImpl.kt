@@ -1,5 +1,6 @@
 package cz.tomasjanicek.bp.database.medicine
 
+import cz.tomasjanicek.bp.model.EndingType
 import cz.tomasjanicek.bp.model.Medicine
 import cz.tomasjanicek.bp.model.MedicineReminder
 import cz.tomasjanicek.bp.model.RegularityType
@@ -89,42 +90,70 @@ class LocalMedicineRepositoryImpl @Inject constructor(
 
         if (medicine.isRegular) {
             // --- Logika pro PRAVIDELNÉ léky ---
+            val today = LocalDate.now()
+            val startDate = Instant.ofEpochMilli(medicine.startDate ?: 0)
+                .atZone(ZoneId.systemDefault()).toLocalDate()
 
             // Začneme od dnešního dne, nebo od startovního data, pokud je v budoucnosti.
-            val today = LocalDate.now()
-            val startDate = Instant.ofEpochMilli(medicine.startDate ?: 0).atZone(ZoneId.systemDefault()).toLocalDate()
             var currentDate = if (startDate.isAfter(today)) startDate else today
 
-            // Vygenerujeme připomínky na 90 dní dopředu (dostatečná rezerva)
+            // Koncové datum pro kontrolu ve smyčce (pokud existuje)
+            val endDate = medicine.endDate?.let {
+                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+            }
+
+            // Maximální počet dávek pro kontrolu ve smyčce
+            val maxDoses = if (medicine.endingType == EndingType.AFTER_DOSES) {
+                medicine.doseCount
+            } else {
+                null
+            }
+            var dosesGenerated = 0
+
+            // Generujeme připomínky na max. 90 dní dopředu, ale respektujeme i další podmínky
             for (i in 0..89) {
                 val dateToSchedule = currentDate.plusDays(i.toLong())
+
+                // --- PODMÍNKA 1: Ukončení k datu ---
+                if (endDate != null && dateToSchedule.isAfter(endDate)) {
+                    break // Přerušíme smyčku, pokud jsme za koncovým datem
+                }
+
                 val dayOfWeek = dateToSchedule.dayOfWeek
 
                 val shouldScheduleForThisDay = when (medicine.regularityType) {
-                    RegularityType.DAILY -> true // Pro denní typ plánujeme každý den
-                    RegularityType.WEEKLY -> medicine.regularDays?.contains(dayOfWeek) ?: false // Pro týdenní jen vybrané dny
+                    RegularityType.DAILY -> true
+                    RegularityType.WEEKLY -> medicine.regularDays?.contains(dayOfWeek) ?: false
                 }
 
                 if (shouldScheduleForThisDay) {
                     medicine.regularTimes.forEach { timeInMinutes ->
-                        // Převedeme čas na milisekundy
-                        val plannedDateTime = dateToSchedule.atTime(timeInMinutes / 60, timeInMinutes % 60)
-                            .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                        // --- PODMÍNKA 2: Ukončení po počtu dávek ---
+                        if (maxDoses != null && dosesGenerated >= maxDoses) {
+                            return reminders // Ukončíme celou funkci, máme dost dávek
+                        }
 
-                        reminders.add(
-                            MedicineReminder(
-                                medicineId = medicine.id,
-                                plannedDateTime = plannedDateTime,
-                                status = ReminderStatus.PLANNED
+                        val plannedDateTime =
+                            dateToSchedule.atTime(timeInMinutes / 60, timeInMinutes % 60)
+                                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+                        // Přidáme pouze připomínky, které ještě neproběhly
+                        if (plannedDateTime >= System.currentTimeMillis()) {
+                            reminders.add(
+                                MedicineReminder(
+                                    medicineId = medicine.id,
+                                    plannedDateTime = plannedDateTime,
+                                    status = ReminderStatus.PLANNED
+                                )
                             )
-                        )
+                            dosesGenerated++ // Zvýšíme počítadlo vygenerovaných dávek
+                        }
                     }
                 }
             }
         } else {
-            // --- Logika pro JEDNORÁZOVÉ léky ---
+            // --- Logika pro JEDNORÁZOVÉ léky (zůstává stejná) ---
             medicine.singleDates?.forEach { dateTimeMillis ->
-                // Přidáme jen ty, které ještě neproběhly
                 if (dateTimeMillis >= System.currentTimeMillis()) {
                     reminders.add(
                         MedicineReminder(
