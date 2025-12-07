@@ -9,6 +9,9 @@ import cz.tomasjanicek.bp.database.doctor.LocalDoctorsRepositoryImpl
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
 import cz.tomasjanicek.bp.database.examination.ILocalExaminationsRepository
 import cz.tomasjanicek.bp.database.examination.LocalExaminationsRepositoryImpl
+import cz.tomasjanicek.bp.database.injection.IInjectionRepository
+import cz.tomasjanicek.bp.database.injection.InjectionDao
+import cz.tomasjanicek.bp.database.injection.InjectionRepositoryImpl
 import cz.tomasjanicek.bp.database.measurement.ILocalMeasurementCategoriesRepository
 import cz.tomasjanicek.bp.database.measurement.ILocalMeasurementsRepository
 import cz.tomasjanicek.bp.database.measurement.LocalMeasurementCategoriesRepositoryImpl
@@ -65,4 +68,11 @@ object RepositoryModule {
     fun provideCycleRepository(
         dao: CycleRecordDao
     ): ICycleRepository = CycleRepositoryImpl(dao)
+
+    @Provides
+    @Singleton
+    fun provideInjectionRepository(
+        dao: InjectionDao
+    ): IInjectionRepository = InjectionRepositoryImpl(dao)
+
 }

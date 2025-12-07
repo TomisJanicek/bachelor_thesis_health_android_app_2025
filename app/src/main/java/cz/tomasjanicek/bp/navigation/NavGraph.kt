@@ -16,6 +16,7 @@ import cz.tomasjanicek.bp.ui.screens.examination.detail.DetailOfExaminationScree
 import cz.tomasjanicek.bp.ui.screens.examination.doctorEdit.DoctorEditScreen
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationScreen
 import cz.tomasjanicek.bp.ui.screens.examination.mapSelector.MapSelectorScreen
+import cz.tomasjanicek.bp.ui.screens.injection.AddEditInjectionScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.addEditCategory.AddEditCategoryScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.addEditMeasurement.AddEditMeasurementScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCategoryDetailScreen
@@ -229,6 +230,34 @@ fun NavGraph(
 
         composable(Destination.StatsScreen.route) {
             StatsScreen(navigationRouter = navigationRouter, currentScreenIndex = 3)
+        }
+        composable(Destination.AddEditInjectionScreen.route) {
+            AddEditInjectionScreen(
+                navigationRouter = navigationRouter,
+                injectionId = null
+            )
+        }
+
+        // Obrazovka pro úpravu existujícího očkování
+        composable(
+            route = Destination.AddEditInjectionScreen.route + "/{injectionId}",
+            arguments = listOf(
+                navArgument("injectionId") {
+                    type = NavType.LongType
+                    // Výchozí hodnota pro případ, že by argument chyběl,
+                    // i když by se to u této cesty stát nemělo.
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
+            val idArg = backStackEntry.arguments?.getLong("injectionId") ?: -1L
+            // Pokud je ID -1 (výchozí), předáme null, což značí nový záznam.
+            // Jinak předáme skutečné ID.
+            val id = if (idArg == -1L) null else idArg
+            AddEditInjectionScreen(
+                navigationRouter = navigationRouter,
+                injectionId = id
+            )
         }
     }
 }

@@ -10,12 +10,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import cz.tomasjanicek.bp.database.cycle.CycleRecordDao
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
+import cz.tomasjanicek.bp.database.injection.InjectionDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementDao
 import cz.tomasjanicek.bp.database.medicine.MedicineDao
 import cz.tomasjanicek.bp.model.CycleRecord
 import cz.tomasjanicek.bp.model.Doctor
 import cz.tomasjanicek.bp.model.Examination
+import cz.tomasjanicek.bp.model.Injection
 import cz.tomasjanicek.bp.model.Measurement
 import cz.tomasjanicek.bp.model.MeasurementCategory
 import cz.tomasjanicek.bp.model.MeasurementCategoryField
@@ -44,9 +46,10 @@ import kotlinx.coroutines.launch
         MeasurementValue::class,
         Medicine::class,
         MedicineReminder::class,
-        CycleRecord::class
+        CycleRecord::class,
+        Injection::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -58,6 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun measurementDao(): MeasurementDao
     abstract fun medicineDao(): MedicineDao
     abstract fun cycleRecordDao(): CycleRecordDao
+    abstract fun injectionDao(): InjectionDao
 
     companion object {
         @Volatile

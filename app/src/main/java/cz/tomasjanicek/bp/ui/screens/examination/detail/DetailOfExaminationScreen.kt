@@ -89,12 +89,11 @@ import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.utils.DateUtils
 import androidx.core.net.toUri
 import cz.tomasjanicek.bp.model.Examination
-import cz.tomasjanicek.bp.ui.elements.StatusSelector
+//import cz.tomasjanicek.bp.ui.elements.StatusSelector
 import cz.tomasjanicek.bp.ui.screens.examination.components.ExaminationItemCard
 import cz.tomasjanicek.bp.ui.screens.examination.components.ExaminationSheetContent
 import cz.tomasjanicek.bp.ui.screens.examination.components.InfoCard
 import cz.tomasjanicek.bp.ui.screens.examination.components.Section
-import cz.tomasjanicek.bp.ui.screens.examination.list.ExaminationFilterType
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyRed
 import cz.tomasjanicek.bp.utils.getDrawableResourceId
@@ -102,11 +101,53 @@ import java.time.Instant
 import java.time.ZoneOffset
 import cz.tomasjanicek.bp.R
 
+/**
+ * Jednoduchý, lokální enum jen pro filtrování v detailu lékaře.
+ */
+private enum class DetailFilterType(val label: String) {
+    SCHEDULED("Naplánované"),
+    HISTORY("Historie")
+}
+
+/**
+ * Jednoduchý, lokální selector jen pro detail lékaře.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DetailStatusSelector(
+    selectedFilter: DetailFilterType,
+    onFilterSelected: (DetailFilterType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    SingleChoiceSegmentedButtonRow(modifier) {
+        DetailFilterType.values().forEachIndexed { index, filterType ->
+            SegmentedButton(
+                selected = (selectedFilter == filterType),
+                onClick = { onFilterSelected(filterType) },
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = DetailFilterType.values().size
+                ),
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.secondary,
+                    activeContentColor = MyBlack,
+                    inactiveContainerColor = MyWhite,
+                    inactiveContentColor = MyBlack,
+                    inactiveBorderColor = MaterialTheme.colorScheme.outline
+                )
+            ) {
+                Text(filterType.label)
+            }
+        }
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailOfExaminationScreen(
     navigationRouter: INavigationRouter,
-    doctorId: Long // <<< ZMĚNA ZDE: z examinationId na doctorId
+    doctorId: Long
 ) {
     val viewModel: DetailOfExaminationViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -137,22 +178,18 @@ fun DetailOfExaminationScreen(
                 },
                 onNavigateBack = { navigationRouter.returBack() },
                 onEditClick = {
-                    // Bezpečně získáme ID z aktuálního stavu 'Loaded'
                     val mainExaminationId = (uiState as? DetailOfExaminationUIState.Loaded)
                         ?.examinationWithDoctor?.examination?.id
                     if (mainExaminationId != null) {
-                    navigationRouter.navigateToAddEditExaminationScreen(mainExaminationId)
-                }
+                        navigationRouter.navigateToAddEditExaminationScreen(mainExaminationId)
+                    }
                 },
-                // --- PŘIDEJTE TUTO NOVOU AKCI ---
                 onEditDoctorClick = {
                     val doctorIdToEdit = state.examinationWithDoctor.doctor?.id
                     if (doctorIdToEdit != null) {
-                        // Zde voláme novou navigační funkci, kterou jsme si připravili
                         navigationRouter.navigateToDoctorEditScreen(doctorIdToEdit)
                     }
                 },
-                // --- PŘIDEJTE TYTO NOVÉ PARAMETRY ---
                 selectedExaminationForSheet = selectedExaminationForSheet,
                 onHideSheet = { viewModel.hideExaminationDetailSheet() },
                 onCompleteExamination = { examination, result ->
@@ -161,7 +198,6 @@ fun DetailOfExaminationScreen(
                 onRelatedItemClick = { clickedExam ->
                     viewModel.showExaminationDetailSheet(clickedExam)
                 },
-                // --- PŘIDEJTE TUTO ČÁST ---
                 onDeleteExamination = { examination ->
                     viewModel.deleteExamination(examination)
                 },
@@ -170,14 +206,13 @@ fun DetailOfExaminationScreen(
                         navigationRouter.navigateToAddEditExaminationScreen(id)
                     }
                 },
-                onCancelExamination = { examination, reason -> // <-- PŘIDAT TUTO LAMBDU
+                onCancelExamination = { examination, reason ->
                     viewModel.cancelExamination(examination, reason)
                 }
-                // --- KONEC NOVÉ ČÁSTI ---
             )
         }
 
-        is DetailOfExaminationUIState.Error -> { // Upraveno pro zobrazení chyby
+        is DetailOfExaminationUIState.Error -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(state.message)
             }
@@ -195,33 +230,27 @@ fun DetailOfExaminationContent(
     onToggleExaminations: (Boolean) -> Unit,
     onNavigateBack: () -> Unit,
     onEditClick: () -> Unit,
-    onEditDoctorClick: () -> Unit, // <-- PŘIDAT TENTO ŘÁDEK
+    onEditDoctorClick: () -> Unit,
     onRelatedItemClick: (Examination) -> Unit,
     selectedExaminationForSheet: Examination?,
     onHideSheet: () -> Unit,
     onCompleteExamination: (Examination, String) -> Unit,
     onDeleteExamination: (Examination) -> Unit,
     onEditExamination: (Long) -> Unit,
-    onCancelExamination: (Examination, String) -> Unit // <-- PŘIDAT TENTO PARAMETR
+    onCancelExamination: (Examination, String) -> Unit
 ) {
     val context = LocalContext.current
-    val examination = examinationWithDoctor.examination
     val doctor = examinationWithDoctor.doctor
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
 
-    val formattedDateTime = remember(examination.dateTime) {
-        DateUtils.getDateTimeString(examination.dateTime)
-    }
-
     if (selectedExaminationForSheet != null) {
         ModalBottomSheet(
             onDismissRequest = onHideSheet,
             sheetState = sheetState
         ) {
-            // Obsah BottomSheetu - vytvoříme ho v dalším kroku
             ExaminationSheetContent(
                 examination = selectedExaminationForSheet,
                 onCompleteClick = { result ->
@@ -231,19 +260,16 @@ fun DetailOfExaminationContent(
                     onDeleteExamination(selectedExaminationForSheet)
                 },
                 onEditClick = {
-                    // Bezpečně získáme ID a zavoláme funkci pro úpravu
                     selectedExaminationForSheet.id?.let {
                         onEditExamination(it)
                     }
                 },
                 onRescheduleClick = {
-                    // Pro "Naplánovat znovu" můžeme použít stejnou logiku jako pro úpravu,
-                    // protože uživatele pošleme na stejnou obrazovku
                     selectedExaminationForSheet.id?.let {
                         onEditExamination(it)
                     }
                 },
-                        onCancelClick = { reason -> // <-- PŘIDAT TUTO AKCI
+                onCancelClick = { reason ->
                     onCancelExamination(selectedExaminationForSheet, reason)
                 }
             )
@@ -297,28 +323,20 @@ fun DetailOfExaminationContent(
                         .fillMaxWidth()
                         .height(300.dp)
                 ) {
-                    // 1. Získáme bezpečně název obrázku
                     val imageName = doctor?.image
-
-                    // 2. Pokud název existuje a není prázdný...
                     if (!imageName.isNullOrBlank()) {
-                        val context = LocalContext.current
                         val imageResId = remember(imageName) {
                             context.resources.getIdentifier(imageName, "drawable", context.packageName)
                         }
 
-                        // 3. ...a pokud se pro něj najde platný obrázek v res/drawable...
                         if (imageResId != 0) {
-                            // ...zobrazíme obrázek.
                             Image(
                                 painter = painterResource(id = imageResId),
-                                contentDescription = "Fotografie lékaře ${doctor?.name}",
+                                contentDescription = "Fotografie lékaře ${doctor.name}",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            // Fallback, pokud byl v DB název, ale soubor v drawable chybí (překlep)
-                            // Zobrazíme barevný box a debugovací text.
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -333,8 +351,6 @@ fun DetailOfExaminationContent(
                             }
                         }
                     } else {
-                        // 4. Pokud název obrázku v datech vůbec není (je null nebo prázdný)...
-                        // ...zobrazíme barevný box a debugovací text.
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -342,8 +358,9 @@ fun DetailOfExaminationContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                doctor?.image + "je null nebo prázdný." + doctor?.name,
-                                color = Color.Yellow
+                                doctor?.specialization?.first()?.toString() ?: "?",
+                                style = MaterialTheme.typography.displayLarge,
+                                color = MyWhite
                             )
                         }
                     }
@@ -370,7 +387,7 @@ fun DetailOfExaminationContent(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            text = doctor?.specialization ?: "Bez doktora",
+                            text = doctor?.specialization ?: "Bez specializace",
                             style = MaterialTheme.typography.displaySmall,
                             color = MyWhite,
                             fontWeight = FontWeight.Bold
@@ -395,19 +412,9 @@ fun DetailOfExaminationContent(
                                 ),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Call,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = "Zavolat",
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Icon(imageVector = Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Text(text = "Zavolat", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                             Button(
@@ -425,41 +432,30 @@ fun DetailOfExaminationContent(
                                 ),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Email,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = "Email",
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Icon(imageVector = Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Text(text = "Email", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                             Button(
                                 onClick = {
-                                    // Prioritně použijeme přesné souřadnice, pokud existují.
                                     if (doctor?.latitude != null && doctor.longitude != null) {
                                         val lat = doctor.latitude
                                         val lng = doctor.longitude
-                                        val intentUri = "geo:$lat,$lng?q=$lat,$lng(Cíl)".toUri()
-                                        val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
-                                        mapIntent.setPackage("com.google.android.apps.maps")
+                                        val intentUri = "geo:$lat,$lng?q=$lat,$lng(${doctor.name})".toUri()
+                                        val mapIntent = Intent(Intent.ACTION_VIEW, intentUri).apply {
+                                            setPackage("com.google.android.apps.maps")
+                                        }
                                         context.startActivity(mapIntent)
                                     } else if (!doctor?.addressLabel.isNullOrBlank()) {
-                                        // Pokud souřadnice nejsou, zkusíme navigovat alespoň podle textového popisku.
                                         val encodedAddress = Uri.encode(doctor.addressLabel)
                                         val geoUri = "geo:0,0?q=$encodedAddress".toUri()
-                                        val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
-                                        mapIntent.setPackage("com.google.android.apps.maps")
+                                        val mapIntent = Intent(Intent.ACTION_VIEW, geoUri).apply {
+                                            setPackage("com.google.android.apps.maps")
+                                        }
                                         context.startActivity(mapIntent)
                                     }
                                 },
-                                // Tlačítko je aktivní, pokud máme buď souřadnice, NEBO textovou adresu.
                                 enabled = (doctor?.latitude != null && doctor.longitude != null) || !doctor?.addressLabel.isNullOrBlank(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
@@ -467,19 +463,9 @@ fun DetailOfExaminationContent(
                                 ),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Navigation,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = "Navigace",
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Icon(imageVector = Icons.Default.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Text(text = "Navigace", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                         }
@@ -493,7 +479,6 @@ fun DetailOfExaminationContent(
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-
                 ) {
                     val doctorDetails = remember(doctor) {
                         buildString {
@@ -509,10 +494,7 @@ fun DetailOfExaminationContent(
                         }
                     }
 
-                    // Původní InfoCard pro doktora, zabalená do nové
-                    InfoCard(
-                        icon = Icons.Default.Person
-                    ) {
+                    InfoCard(icon = Icons.Default.Person) {
                         Column {
                             Text(
                                 text = doctor?.name ?: "Není přiřazen",
@@ -529,7 +511,7 @@ fun DetailOfExaminationContent(
                             }
                             if (doctor?.subtitle?.isNotBlank() == true) {
                                 Text(
-                                    text = doctor.subtitle.toString(),
+                                    text = doctor.subtitle!!,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MyBlack
                                 )
@@ -542,10 +524,11 @@ fun DetailOfExaminationContent(
             if (allRelatedExaminations.isNotEmpty()) {
                 item {
                     Section(title = "Prohlídky u tohoto lékaře") {
-                        StatusSelector(
-                            selectedFilter = if (showUpcoming) ExaminationFilterType.SCHEDULED else ExaminationFilterType.HISTORY,
+                        // --- KROK 2: Použití nového lokálního selectoru ---
+                        DetailStatusSelector(
+                            selectedFilter = if (showUpcoming) DetailFilterType.SCHEDULED else DetailFilterType.HISTORY,
                             onFilterSelected = { filterType ->
-                                onToggleExaminations(filterType == ExaminationFilterType.SCHEDULED)
+                                onToggleExaminations(filterType == DetailFilterType.SCHEDULED)
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -565,39 +548,20 @@ fun DetailOfExaminationContent(
                         )
                     }
                 } else {
-                    // ZDE JE OPRAVENÝ BLOK - POUZE JEDEN `items`
                     items(relatedExaminations, key = { it.id!! }) { relatedExam ->
                         ExaminationItemCard(
                             examination = relatedExam,
                             onAddToCalendar = { examToCalendar ->
                                 val intent =
                                     Intent(Intent.ACTION_INSERT).setData(CalendarContract.Events.CONTENT_URI)
-                                        .putExtra(
-                                            CalendarContract.EXTRA_EVENT_BEGIN_TIME,
-                                            examToCalendar.dateTime
-                                        )
-                                        // Můžeme přidat hodinu k délce události
-                                        .putExtra(
-                                            CalendarContract.EXTRA_EVENT_END_TIME,
-                                            examToCalendar.dateTime + 60 * 60 * 1000
-                                        )
-                                        .putExtra(
-                                            CalendarContract.Events.TITLE,
-                                            "Lékařská prohlídka: ${examToCalendar.purpose}"
-                                        )
-                                        .putExtra(
-                                            CalendarContract.Events.DESCRIPTION,
-                                            examToCalendar.note ?: ""
-                                        )
-                                        .putExtra(
-                                            CalendarContract.Events.EVENT_LOCATION,
-                                            doctor?.addressLabel ?: ""
-                                        )
-
+                                        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, examToCalendar.dateTime)
+                                        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, examToCalendar.dateTime + 60 * 60 * 1000)
+                                        .putExtra(CalendarContract.Events.TITLE, "Lékařská prohlídka: ${examToCalendar.purpose}")
+                                        .putExtra(CalendarContract.Events.DESCRIPTION, examToCalendar.note ?: "")
+                                        .putExtra(CalendarContract.Events.EVENT_LOCATION, doctor?.addressLabel ?: "")
                                 context.startActivity(intent)
                             },
                             onItemClick = { clickedExam ->
-                                // Oznámíme "ven", že se kliklo na položku
                                 onRelatedItemClick(clickedExam)
                             },
                             modifier = Modifier.padding(horizontal = 16.dp)

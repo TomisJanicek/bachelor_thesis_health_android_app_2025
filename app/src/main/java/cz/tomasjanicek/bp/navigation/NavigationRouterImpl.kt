@@ -116,4 +116,13 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
     override fun navigateToCycleScreen() {
         navController.navigate(Destination.CycleScreen.route)
     }
+
+    override fun navigateToAddEditInjectionScreen(injectionId: Long?) {
+        val route = if (injectionId != null && injectionId != 0L) {
+            "${Destination.AddEditInjectionScreen.route}/$injectionId"
+        } else {
+            Destination.AddEditInjectionScreen.route
+        }
+        navController.navigate(route)
+    }
 }

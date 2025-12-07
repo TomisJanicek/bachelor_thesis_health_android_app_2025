@@ -6,6 +6,9 @@ import cz.tomasjanicek.bp.database.cycle.CycleRepositoryImpl
 import cz.tomasjanicek.bp.database.cycle.ICycleRepository
 import cz.tomasjanicek.bp.database.doctor.DoctorDao
 import cz.tomasjanicek.bp.database.examination.ExaminationDao
+import cz.tomasjanicek.bp.database.injection.IInjectionRepository
+import cz.tomasjanicek.bp.database.injection.InjectionDao
+import cz.tomasjanicek.bp.database.injection.InjectionRepositoryImpl
 import cz.tomasjanicek.bp.database.measurement.MeasurementCategoryDao
 import cz.tomasjanicek.bp.database.measurement.MeasurementDao
 import cz.tomasjanicek.bp.database.medicine.MedicineDao
@@ -45,4 +48,7 @@ object DaoModule {
     @Singleton
     fun provideCycleRecordDao(db: AppDatabase): CycleRecordDao = db.cycleRecordDao()
 
+    @Provides
+    @Singleton
+    fun provideInjectionDao(db: AppDatabase): InjectionDao = db.injectionDao()
 }

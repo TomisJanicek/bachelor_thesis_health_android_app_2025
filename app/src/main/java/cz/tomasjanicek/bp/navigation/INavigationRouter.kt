@@ -45,4 +45,7 @@ interface INavigationRouter {
 
     /** Naviguje na obrazovku pro sledování cyklu. */
     fun navigateToCycleScreen()
+
+    /** Naviguje na obrazovku pro přidání/editaci očkování. */
+    fun navigateToAddEditInjectionScreen(injectionId: Long?)
 }
