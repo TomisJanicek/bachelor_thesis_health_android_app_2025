@@ -172,7 +172,7 @@ fun StatsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(MyGreen.copy(alpha = 0.05f))
+                .background(MyWhite)
         ) {
             FilterSection(
                 state = state,
@@ -229,7 +229,7 @@ private fun FilterSection(
             .fillMaxWidth()
             .padding(12.dp)
             .animateContentSize(animationSpec = spring()), // Tato animace zajistí plynulé rozbalení
-        colors = CardDefaults.cardColors(containerColor = MyWhite)
+        colors = CardDefaults.cardColors(containerColor = MyGreen.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -510,13 +510,14 @@ private fun EmptyStateStats(hasAnyCategory: Boolean, modifier: Modifier = Modifi
         Text(
             text = if (hasAnyCategory) "Vyberte filtry pro zobrazení statistik" else "Nejprve vytvořte kategorie měření",
             style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MyBlack
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = if (hasAnyCategory) "Zvolte alespoň jednu kategorii měření, pro kterou chcete zobrazit graf." else "Statistiky lze zobrazit až poté, co budete mít definované vlastní kategorie a v nich nějaká data.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MyBlack,
             textAlign = TextAlign.Center
         )
     }

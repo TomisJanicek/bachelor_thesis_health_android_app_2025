@@ -12,7 +12,6 @@ val Pink40 = Color(0xFF7D5260)
 
 
 val MyGreen = Color(0xFFA6D8BE)   // zelenošedé pozadí
-//val MyGreen = Color(0xFF6A8686)   // zelenošedé pozadí
 val MyPink  = Color(0xFFE0B0B0)   // růžový indikátor
 val MyBlack = Color(0xFF000000)   // černý text/ikona
 val MyWhite = Color(0xFFFFFFFF)   // bílý text/ikona

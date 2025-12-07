@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import cz.tomasjanicek.bp.ui.screens.cycle.CalendarDay
 import cz.tomasjanicek.bp.ui.screens.cycle.DayType
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.ui.theme.Pink80
@@ -95,38 +96,38 @@ private fun DayCell(
         // ===== REÁLNÉ ZÁZNAMY – vybarvené kolečko =====
         DayType.MENSTRUATION -> Triple(
             MyPink,
-            if (day.isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
+            if (day.isToday) MyBlack else Color.Transparent,
             if (day.isToday) 2.dp else 0.dp
         )
 
         DayType.OVULATION -> Triple(
-            TagPurple.copy(alpha = 0.8f),
-            if (day.isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
+            TagPurple,
+            if (day.isToday) MyBlack else Color.Transparent,
             if (day.isToday) 2.dp else 0.dp
         )
 
         DayType.FERTILE -> Triple(
-            TagGreen.copy(alpha = 0.7f),
-            if (day.isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
+            MyGreen,
+            if (day.isToday) MyBlack else Color.Transparent,
             if (day.isToday) 2.dp else 0.dp
         )
 
         // ===== PREDIKCE – průhledné kolečko, barevný okraj =====
         DayType.PREDICTED_MENSTRUATION -> Triple(
             Color.Transparent,
-            Pink80,
+            MyPink.copy(0.5f),
             2.dp
         )
 
         DayType.PREDICTED_FERTILE -> Triple(
             Color.Transparent,
-            TagGreen,
+            MyGreen.copy(alpha = 0.5f),
             2.dp
         )
 
         DayType.PREDICTED_OVULATION -> Triple(
             Color.Transparent,
-            TagPurple,
+            TagPurple.copy(alpha = 0.5f),
             2.dp
         )
 

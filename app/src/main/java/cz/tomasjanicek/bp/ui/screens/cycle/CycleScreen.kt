@@ -59,6 +59,7 @@ import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
 import cz.tomasjanicek.bp.ui.screens.cycle.components.CalendarView
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.ui.theme.Pink80
@@ -117,6 +118,7 @@ fun CycleScreen(
     ) { padding ->
         Column(
             modifier = Modifier
+                .background(MyWhite)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
@@ -247,14 +249,14 @@ private fun CycleLegend() {
         Row {
             Column(modifier = Modifier.weight(1f)) {
                 LegendItem(color = MyPink, text = "Menstruace")
-                LegendItem(color = TagGreen.copy(alpha = 0.7f), text = "Plodné dny")
-                LegendItem(color = TagPurple.copy(alpha = 0.8f), text = "Ovulace")
+                LegendItem(color = MyGreen, text = "Plodné dny")
+                LegendItem(color = TagPurple, text = "Ovulace")
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                LegendItem(color = Pink80, text = "Očekávaná m.")
-                LegendItem(color = TagGreen, text = "Očekávané p. dny")
-                LegendItem(color = TagPurple, text = "Očekávaná o.")
+                LegendItem(color = MyPink.copy(0.5f), text = "Očekávaná m.")
+                LegendItem(color = MyGreen.copy(alpha = 0.5f), text = "Očekávané p. dny")
+                LegendItem(color = TagPurple.copy(alpha = 0.5f), text = "Očekávaná o.")
             }
         }
     }
