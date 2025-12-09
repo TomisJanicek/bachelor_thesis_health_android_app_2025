@@ -37,6 +37,7 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
+
         composable(Destination.CycleScreen.route) {
             CycleScreen(navigationRouter = navigationRouter, currentScreenIndex = 4)
         }

@@ -12,7 +12,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import cz.tomasjanicek.bp.navigation.Destination
 import cz.tomasjanicek.bp.navigation.NavGraph
 import cz.tomasjanicek.bp.ui.theme.BpTheme
-import cz.tomasjanicek.bp.ui.theme.MyGreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

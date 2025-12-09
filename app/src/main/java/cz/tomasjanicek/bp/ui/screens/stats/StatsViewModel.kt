@@ -1,10 +1,6 @@
 package cz.tomasjanicek.bp.ui.screens.stats
 
-import androidx.compose.animation.core.copy
-import androidx.compose.foundation.layout.add
-import androidx.compose.ui.test.filter
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import cz.tomasjanicek.bp.database.measurement.ILocalMeasurementCategoriesRepository
 import cz.tomasjanicek.bp.database.measurement.ILocalMeasurementsRepository
@@ -21,12 +17,10 @@ import java.time.ZoneOffset
 import javax.inject.Inject
 import kotlin.collections.find
 import kotlin.collections.mapNotNull
-import kotlin.collections.remove
 import kotlin.collections.toMutableSet
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import cz.tomasjanicek.bp.services.PdfExporter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch

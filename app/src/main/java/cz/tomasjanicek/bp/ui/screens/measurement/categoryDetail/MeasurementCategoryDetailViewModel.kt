@@ -1,6 +1,5 @@
 package cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail
 
-import androidx.compose.ui.test.filter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.tomasjanicek.bp.database.measurement.ILocalMeasurementCategoriesRepository

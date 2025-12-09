@@ -1,11 +1,7 @@
 package cz.tomasjanicek.bp.ui.screens.measurement.addEditCategory
 
-import androidx.compose.animation.core.copy
-import androidx.compose.foundation.gestures.forEach
-import androidx.compose.ui.test.cancel
+
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.distinctUntilChanged
-import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import cz.tomasjanicek.bp.R
 import cz.tomasjanicek.bp.database.measurement.ILocalMeasurementCategoriesRepository

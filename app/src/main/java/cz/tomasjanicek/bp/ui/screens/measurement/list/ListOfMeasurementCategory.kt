@@ -82,7 +82,7 @@ fun ListOfMeasurementCategory(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Nastavení */ }) {
+                    IconButton(onClick = { throw RuntimeException("Test Crash")}) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "Nastavení"

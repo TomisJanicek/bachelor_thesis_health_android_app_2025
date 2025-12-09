@@ -9,6 +9,9 @@ plugins {
         alias(libs.plugins.kotlin.compose)
         kotlin("kapt")
         id("dagger.hilt.android.plugin")
+        id("com.google.gms.google-services")
+        id("com.google.firebase.crashlytics")
+
 }
 
 val properties = Properties()
@@ -66,7 +69,7 @@ android {
 }
 
 dependencies {
-
+    // === Core a UI závislosti ===
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -75,114 +78,78 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.image.labeling.common)
-    implementation(libs.image.labeling.default.common)
-    implementation(libs.firebase.crashlytics.buildtools)
-    implementation(libs.androidx.junit.ktx)
-    implementation(libs.androidx.ui.test.junit4.android)
-    implementation(libs.androidx.room.common.jvm)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.coil.compose)
+    implementation(libs.material)
 
-    // Hilt
+    // === Hilt (Dependency Injection) ===
     implementation(libs.hilt.android)
     implementation(libs.hilt.compose)
     kapt(libs.hilt.kapt)
-    // Retrofit
+
+    // === Síťování (Retrofit & Moshi & Gson) ===
     implementation(libs.retrofit)
     implementation(libs.retrofit.moshi)
     implementation(libs.retrofit.okhtt3)
-    // Moshi
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
+    implementation(libs.converter.gson)
+    implementation(libs.gson)
 
-    // Navigation
+    // === Navigace ===
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ktx)
     implementation(libs.navigation.compose)
 
+    // === Databáze (Room) & DataStore ===
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler.kapt)
+    implementation(libs.androidx.datastore.preferences)
+
+    // === Mapy & Lokace ===
     implementation(libs.googlemap)
     implementation(libs.googlemap.compose)
     implementation(libs.googlemap.foundation)
     implementation(libs.googlemap.utils)
     implementation(libs.googlemap.widgets)
     implementation(libs.googlemap.compose.utils)
-    implementation (libs.play.services.location)
+    implementation(libs.play.services.location)
+    implementation(libs.accompanist.permissions)
+
+    // === ML Kit (Image Labeling) ===
+    implementation(libs.image.labeling.common)
+    implementation(libs.image.labeling.default.common)
+    implementation(libs.image.labeling)
+    implementation(libs.vision.common)
+    
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
 
 
-    implementation(libs.lifecycle)
-    implementation(libs.room.ktx)
-    implementation(libs.room.viewmodel)
-    implementation(libs.room.lifecycle)
-    implementation(libs.room.runtime)
-    kapt(libs.room.compiler.kapt)
-
-    implementation(libs.material)
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.coil.compose)
-
-    implementation (libs.gson)
-
-    implementation (libs.image.labeling)
-    implementation (libs.vision.common)
-
-    implementation (libs.converter.gson)
-
-    // Hilt testing
-    androidTestImplementation(libs.hilt.android.testing)
-    kaptAndroidTest(libs.hilt.kapt)
-
-    //  Timber
+    // === Ostatní utility ===
     implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation(libs.mpandroidchart)
     implementation(kotlin("script-runtime"))
 
-    // Testing
+    // === Testovací závislosti ===
+    testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.core.testing)
 
-    // Android Testing
-    androidTestImplementation(libs.androidx.test.ext)
-    androidTestImplementation(libs.androidx.test.core)
+    // === Android Test (Instrumentované testy) ===
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.ui.test.junit4)
-
-    // Espresso
-    androidTestImplementation(libs.androidx.espresso.core) {
-        exclude(group = "androidx.test", module = "runner")
-        exclude(group = "androidx.test", module = "rules")
-    }
-
-    // Hilt Testing
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
     androidTestImplementation(libs.hilt.android.testing)
     kaptAndroidTest(libs.hilt.kapt)
+    androidTestImplementation("io.mockk:mockk-android:1.14.6")
 
-    testImplementation ("io.mockk:mockk:1.14.6")
-
-    // MockK pro instrumentované testy (pokud ho plánuješ používat i v androidTest)
-    androidTestImplementation ("io.mockk:mockk-android:1.14.6")
-
-    // Compose Material Icons (kvůli Icons.Outlined.Event)
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-
-    //Ovládání systému
-    implementation(libs.accompanist.systemuicontroller)
-
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.firestore)
-
-
-    implementation(libs.accompanist.permissions)
-    implementation(libs.play.services.location)
-
-
-    implementation(libs.mpandroidchart)
 }
 
 // For Hilt

@@ -1,15 +1,10 @@
 package cz.tomasjanicek.bp.navigation
 
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.asFlow
+
 import androidx.navigation.NavController
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
+
 
 class NavigationRouterImpl(private val navController: NavController): INavigationRouter {
-    override fun navigateToDemoScreen() {
-        navController.navigate(Destination.DemoScreen.route)
-    }
 
     override fun navigaTetoListOfExaminationView() {
         navController.navigate(Destination.ListOfExaminationView.route)

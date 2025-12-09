@@ -15,6 +15,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import cz.tomasjanicek.bp.model.MeasurementCategoryField
 import cz.tomasjanicek.bp.ui.screens.stats.StatsChartData
 import cz.tomasjanicek.bp.ui.screens.stats.StatsPeriodType
 import java.io.File
@@ -33,15 +34,12 @@ class PdfExporter(private val context: Context) {
     private val pageWidth = 792
     private val margin = 40f
     private val contentWidth = pageWidth - 2 * margin
-    private val lineHeight = 20f // Výška jednoho řádku v tabulce
 
-    // ... definice Paint objektů (zůstávají stejné) ...
     private val titlePaint = Paint().apply { color = Color.BLACK; textSize = 24f; isFakeBoldText = true }
     private val headerPaint = Paint().apply { color = Color.BLACK; textSize = 18f; isFakeBoldText = true }
-    private val bodyPaint = Paint().apply { color = Color.DKGRAY; textSize = 14f }
+    private val bodyPaint = Paint().apply { color = Color.DKGRAY; textSize = 14f; typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL) }
     private val tableHeaderPaint = Paint().apply { color = Color.BLACK; textSize = 14f; isFakeBoldText = true }
-
-
+    private val italicPaint = Paint(bodyPaint).apply { typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC) }
     fun exportStatsToPdf(
         chartData: List<StatsChartData>,
         periodType: StatsPeriodType,
@@ -52,21 +50,14 @@ class PdfExporter(private val context: Context) {
         val document = PdfDocument()
         val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create()
 
-        // --- ZDE JE KLÍČOVÁ OPRAVA ---
-        // 1. Vytvoříme stránku POUZE JEDNOU
-        val firstPage = document.startPage(pageInfo)
+        // Začneme s první stránkou
+        var pageState = startNewPage(document, null, pageInfo)
 
-        // 2. Vytvoříme PageState s touto jednou stránkou a jejím canvasem
-        var pageState = PageState(
-            currentPage = firstPage,
-            canvas = firstPage.canvas,
-            yPos = margin + 20
-        )
+        // --- Kreslení obsahu ---
 
-        // Hlavička dokumentu
+        // Hlavička dokumentu na první stránce
         pageState.canvas.drawText("Export statistik měření", margin, pageState.yPos, titlePaint)
         pageState.yPos += 30
-        // ... (zbytek hlavičky)
         val dateRangeText = when (periodType) {
             StatsPeriodType.CUSTOM -> "Období: ${startDate.format(DateTimeFormatter.ofPattern("d.M.yy"))} - ${endDate.format(DateTimeFormatter.ofPattern("d.M.yy"))}"
             else -> "Období: ${periodType.label}"
@@ -76,13 +67,10 @@ class PdfExporter(private val context: Context) {
         pageState.canvas.drawText("Exportováno dne: ${SimpleDateFormat("d. M. yyyy HH:mm", Locale.getDefault()).format(Date())}", margin, pageState.yPos, bodyPaint)
         pageState.yPos += 50
 
-        // Kreslení dat
+        // Kreslení jednotlivých kategorií a grafů
         chartData.forEach { data ->
-            val estimatedHeightForCategory = 50 + (data.categoryWithFields.fields.size * 320)
-            if (pageState.yPos + estimatedHeightForCategory > pageHeight - margin) {
-                pageState = createNewPage(document, pageState, pageInfo)
-            }
-
+            // Potřebujeme místo na nadpis kategorie
+            pageState = ensureSpace(document, pageState, pageInfo, 50f)
             pageState.canvas.drawText(data.categoryWithFields.category.name, margin, pageState.yPos, headerPaint)
             pageState.yPos += 30
 
@@ -94,33 +82,30 @@ class PdfExporter(private val context: Context) {
                 }.sortedBy { it.x }
 
                 if (entries.isNotEmpty()) {
-                    val estimatedHeightForField = 320f
-                    if (pageState.yPos + estimatedHeightForField > pageHeight - margin) {
-                        pageState = createNewPage(document, pageState, pageInfo)
-                    }
-
+                    // Potřebujeme místo pro graf
+                    pageState = ensureSpace(document, pageState, pageInfo, 280f)
                     drawChart(pageState.canvas, entries, field.label, pageState.yPos)
                     pageState.yPos += 280
 
-                    // --- ZMĚNA: Předáváme celý stav a dokument ---
+                    // Tabulka se o stránkování postará sama
                     pageState = drawDataTable(document, pageInfo, pageState, entries, field)
-                    pageState.yPos += 40
+                    pageState.yPos += 40 // Mezera po tabulce
                 }
             }
         }
 
+        // Dokončíme poslední otevřenou stránku
         document.finishPage(pageState.currentPage)
         Log.d(TAG, "[2] Kreslení do PDF dokumentu dokončeno.")
 
-        // Uložení souboru (zůstává stejné)
+        // Uložení souboru
         return try {
             val file = File(context.cacheDir, "export_mereni_${System.currentTimeMillis()}.pdf")
-            // ...
             val fos = FileOutputStream(file)
             document.writeTo(fos)
             document.close()
             fos.close()
-            // ...
+            Log.d(TAG, "[3] PDF soubor úspěšně uložen do: ${file.absolutePath}")
             FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
         } catch (e: Exception) {
             Log.e(TAG, "[CHYBA] Selhání při ukládání souboru nebo získávání URI!", e)
@@ -128,24 +113,37 @@ class PdfExporter(private val context: Context) {
         }
     }
 
-    // --- NOVÁ POMOCNÁ FUNKCE pro vytvoření nové stránky ---
-    private fun createNewPage(document: PdfDocument, oldPageState: PageState, pageInfo: PdfDocument.PageInfo): PageState {
-        document.finishPage(oldPageState.currentPage)
+    /**
+     * OPRAVENO: Tato funkce je teď jediná, která vytváří novou stránku.
+     * Ukončí starou stránku (pokud existuje) a začne novou.
+     */
+    private fun startNewPage(document: PdfDocument, oldPage: PdfDocument.Page?, pageInfo: PdfDocument.PageInfo): PageState {
+        oldPage?.let { document.finishPage(it) }
         val newPage = document.startPage(pageInfo)
-        val newCanvas = newPage.canvas
-        var newYPos = margin
-        drawPageHeader(newCanvas)
-        newYPos += 40
-        return PageState(newPage, newCanvas, newYPos)
+        var yPos = margin
+        // Vykreslíme záhlaví jen na stránkách > 1
+        if (oldPage != null) {
+            newPage.canvas.drawText("Pokračování exportu...", margin, yPos, italicPaint)
+            yPos += 40
+        }
+        return PageState(newPage, newPage.canvas, yPos)
     }
 
-    private fun drawPageHeader(canvas: Canvas) {
-        val headerText = "Pokračování exportu..."
-        bodyPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
-        canvas.drawText(headerText, margin, margin, bodyPaint)
-        bodyPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+    /**
+     * OPRAVENO: Tato funkce zkontroluje, zda se na stránku vejde obsah dané výšky.
+     * Pokud ne, vytvoří novou stránku.
+     */
+    private fun ensureSpace(document: PdfDocument, currentState: PageState, pageInfo: PdfDocument.PageInfo, heightNeeded: Float): PageState {
+        return if (currentState.yPos + heightNeeded > pageHeight - margin) {
+            startNewPage(document, currentState.currentPage, pageInfo)
+        } else {
+            currentState
+        }
     }
 
+    /**
+     * ZŮSTÁVÁ STEJNÉ: Kreslí graf.
+     */
     private fun drawChart(canvas: Canvas, entries: List<Entry>, label: String, yPos: Float) {
         val chart = LineChart(context).apply {
             layout(0, 0, contentWidth.toInt(), 250)
@@ -177,44 +175,43 @@ class PdfExporter(private val context: Context) {
             this.data = LineData(dataSet)
         }
 
-        // Správné pořadí: save -> translate -> draw -> restore
         canvas.save()
         canvas.translate(margin, yPos)
-        chart.draw(canvas) // <-- Kreslení musí být ZDE
+        chart.draw(canvas)
         canvas.restore()
     }
 
-    // --- ZCELA PŘEPRACOVANÁ FUNKCE `drawDataTable` ---
+    /**
+     * OPRAVENO: Funkce nyní používá `ensureSpace` pro kontrolu místa pro každý řádek.
+     */
     private fun drawDataTable(
         document: PdfDocument,
         pageInfo: PdfDocument.PageInfo,
         initialState: PageState,
         entries: List<Entry>,
-        field: cz.tomasjanicek.bp.model.MeasurementCategoryField
+        field: MeasurementCategoryField
     ): PageState {
-        var currentState = initialState.copy()
+        var currentState = initialState
+
+        // Místo pro hlavičku tabulky
+        val lineHeightHeader = 25f
+        currentState = ensureSpace(document, currentState, pageInfo, lineHeightHeader)
         val col1X = margin
         val col2X = margin + 250
-
-        // Kontrola místa pro hlavičku
-        if (currentState.yPos + lineHeight > pageHeight - margin) {
-            currentState = createNewPage(document, currentState, pageInfo)
-        }
         currentState.canvas.drawText("Datum", col1X, currentState.yPos, tableHeaderPaint)
         currentState.canvas.drawText("Hodnota (${field.unit ?: ""})", col2X, currentState.yPos, tableHeaderPaint)
-        currentState.yPos += 25
+        currentState.yPos += lineHeightHeader
 
         // Kreslení řádků
+        val lineHeightRow = 20f
         entries.forEach { entry ->
-            // Kontrola místa pro další řádek
-            if (currentState.yPos + lineHeight > pageHeight - margin) {
-                currentState = createNewPage(document, currentState, pageInfo)
-            }
+            // Místo pro řádek tabulky
+            currentState = ensureSpace(document, currentState, pageInfo, lineHeightRow)
             val dateStr = SimpleDateFormat("d. M. yyyy HH:mm", Locale.getDefault()).format(Date(entry.x.toLong()))
             val valueStr = String.format(Locale.US, "%.2f", entry.y)
             currentState.canvas.drawText(dateStr, col1X, currentState.yPos, bodyPaint)
             currentState.canvas.drawText(valueStr, col2X, currentState.yPos, bodyPaint)
-            currentState.yPos += lineHeight
+            currentState.yPos += lineHeightRow
         }
         return currentState
     }
