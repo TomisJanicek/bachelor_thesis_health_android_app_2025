@@ -9,24 +9,27 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.google.firebase.auth.FirebaseAuth
+import cz.tomasjanicek.bp.auth.AuthRepository
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     navigationRouter: INavigationRouter,
-    firebaseAuth: FirebaseAuth // Injecneme přímo nebo přes ViewModel
+    repository: AuthRepository // Injecneme přímo nebo přes ViewModel
 ) {
     LaunchedEffect(Unit) {
         // 1. Umělé zdržení (např. 2 sekundy), aby uživatel viděl logo
         delay(2000)
 
-        // 2. Kontrola přihlášení
-        if (firebaseAuth.currentUser != null) {
-            // Uživatel je přihlášen -> Jdeme do aplikace
+        val isLoggedInFirebase = repository.getCurrentUser() != null
+        val isGuest = repository.isGuestMode()
+
+        if (isLoggedInFirebase || isGuest) {
+            // Pustíme ho dál, pokud je přihlášen NEBO je host
             navigationRouter.navigateToHomeFromLogin()
         } else {
-            // Uživatel není přihlášen -> Jdeme na Login
+            // Jinak Login
             navigationRouter.navigateToLogin()
         }
     }

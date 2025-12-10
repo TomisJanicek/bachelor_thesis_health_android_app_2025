@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
+import cz.tomasjanicek.bp.auth.AuthRepository
 import cz.tomasjanicek.bp.auth.LoginScreen
 import cz.tomasjanicek.bp.ui.screens.cycle.CycleScreen
 import cz.tomasjanicek.bp.ui.screens.examination.addEdit.AddEditExaminationScreen
@@ -36,7 +37,7 @@ fun NavGraph(
         NavigationRouterImpl(navController)
     },
     startDestination: String,
-    firebaseAuth: FirebaseAuth // <--- NOVÝ PARAMETR (získáme v MainActivity)
+    repository: AuthRepository
 ) {
     NavHost(
         navController = navController,
@@ -270,7 +271,7 @@ fun NavGraph(
         composable(Destination.SplashScreen.route) {
             SplashScreen(
                 navigationRouter = navigationRouter,
-                firebaseAuth = firebaseAuth
+                repository = repository
             )
         }
 

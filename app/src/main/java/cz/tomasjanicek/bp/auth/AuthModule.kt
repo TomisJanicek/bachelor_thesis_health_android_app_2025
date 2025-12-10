@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import com.google.firebase.auth.FirebaseAuth
+import cz.tomasjanicek.bp.ui.screens.settings.SettingsManager
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
@@ -17,13 +18,14 @@ object AuthModule {
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
 
-    // Pokud jsi vytvořil AuthRepository jako interface a AuthRepositoryImpl jako třídu:
     @Provides
     @Singleton
     fun provideAuthRepository(
         @ApplicationContext context: Context,
-        firebaseAuth: FirebaseAuth
+        firebaseAuth: FirebaseAuth,
+        settingsManager: SettingsManager // <--- PŘIDÁNO: Hilt nám ho sem pošle
     ): AuthRepository {
-        return AuthRepositoryImpl(context, firebaseAuth)
+        // Musíme ho předat do konstruktoru
+        return AuthRepositoryImpl(context, firebaseAuth, settingsManager)
     }
 }

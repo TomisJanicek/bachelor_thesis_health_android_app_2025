@@ -9,7 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.firebase.auth.FirebaseAuth
+import cz.tomasjanicek.bp.auth.AuthRepository
 import cz.tomasjanicek.bp.navigation.Destination
 import cz.tomasjanicek.bp.navigation.NavGraph
 import cz.tomasjanicek.bp.ui.theme.BpTheme
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var firebaseAuth: FirebaseAuth
+    lateinit var repository: AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,9 +57,8 @@ class MainActivity : ComponentActivity() {
             }
             BpTheme {
                 NavGraph(
-                    // ZMĚNA: Startujeme Splash Screenem
                     startDestination = Destination.SplashScreen.route,
-                    firebaseAuth = firebaseAuth
+                    repository = repository // <--- Posíláme do grafu
                 )
             }
         }

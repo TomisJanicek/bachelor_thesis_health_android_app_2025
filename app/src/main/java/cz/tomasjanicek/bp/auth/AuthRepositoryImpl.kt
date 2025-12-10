@@ -12,13 +12,15 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import cz.tomasjanicek.bp.BuildConfig
+import cz.tomasjanicek.bp.ui.screens.settings.SettingsManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val settingsManager: SettingsManager
 ) : AuthRepository {
 
     override suspend fun signInWithGoogle(uiContext: Context): Result<Boolean> {
@@ -94,4 +96,12 @@ class AuthRepositoryImpl @Inject constructor(
 
     // NOVÁ METODA (pomocná)
     override fun getCurrentUser() = firebaseAuth.currentUser
+
+    override fun setGuestMode(enabled: Boolean) {
+        settingsManager.setGuestMode(enabled)
+    }
+
+    override fun isGuestMode(): Boolean {
+        return settingsManager.isGuestMode()
+    }
 }

@@ -7,4 +7,7 @@ interface AuthRepository {
     suspend fun signInWithGoogle(context: Context): Result<Boolean>
     suspend fun signOut() // <--- NOVÉ
     fun getCurrentUser(): FirebaseUser?
+
+    fun setGuestMode(enabled: Boolean)
+    fun isGuestMode(): Boolean
 }

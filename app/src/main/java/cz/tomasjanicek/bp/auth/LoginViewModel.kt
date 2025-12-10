@@ -35,6 +35,12 @@ class LoginViewModel @Inject constructor(
     fun resetState() {
         _loginState.value = LoginState.Idle
     }
+    fun onContinueAsGuestClick(onSuccess: () -> Unit) {
+        // Nastavíme, že jsme host
+        repository.setGuestMode(true)
+        // A rovnou jdeme dál
+        onSuccess()
+    }
 }
 
 // Sealed class pro stav
