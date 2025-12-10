@@ -120,4 +120,21 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
         }
         navController.navigate(route)
     }
+
+    override fun navigateToLogin() {
+        navController.navigate(Destination.LoginScreen.route) {
+            // Vyčistíme vše až po Splash včetně, aby nešlo jít zpět
+            popUpTo(Destination.SplashScreen.route) { inclusive = true }
+        }
+    }
+
+    override fun navigateToHomeFromLogin() {
+        navController.navigate(Destination.ListOfExaminationView.route) {
+            // Vyčistíme celou historii, aplikace začíná "nanovo"
+            popUpTo(0) { inclusive = true }
+        }
+    }
+    override fun navigateToUserScreen() {
+        navController.navigate(Destination.UserScreen.route)
+    }
 }

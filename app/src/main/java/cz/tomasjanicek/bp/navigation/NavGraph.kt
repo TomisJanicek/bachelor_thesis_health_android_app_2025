@@ -10,6 +10,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.auth.FirebaseAuth
+import cz.tomasjanicek.bp.auth.LoginScreen
 import cz.tomasjanicek.bp.ui.screens.cycle.CycleScreen
 import cz.tomasjanicek.bp.ui.screens.examination.addEdit.AddEditExaminationScreen
 import cz.tomasjanicek.bp.ui.screens.examination.detail.DetailOfExaminationScreen
@@ -23,7 +25,9 @@ import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCateg
 import cz.tomasjanicek.bp.ui.screens.measurement.list.ListOfMeasurementCategory
 import cz.tomasjanicek.bp.ui.screens.medicine.addEdit.AddEditMedicineScreen
 import cz.tomasjanicek.bp.ui.screens.medicine.list.MedicineListScreen
+import cz.tomasjanicek.bp.ui.screens.splash.SplashScreen
 import cz.tomasjanicek.bp.ui.screens.stats.StatsScreen
+import cz.tomasjanicek.bp.ui.screens.user.UserScreen
 
 @Composable
 fun NavGraph(
@@ -31,7 +35,8 @@ fun NavGraph(
     navigationRouter: INavigationRouter = remember {
         NavigationRouterImpl(navController)
     },
-    startDestination: String
+    startDestination: String,
+    firebaseAuth: FirebaseAuth // <--- NOVÝ PARAMETR (získáme v MainActivity)
 ) {
     NavHost(
         navController = navController,
@@ -259,6 +264,28 @@ fun NavGraph(
                 navigationRouter = navigationRouter,
                 injectionId = id
             )
+        }
+
+        // --- 1. SPLASH SCREEN ---
+        composable(Destination.SplashScreen.route) {
+            SplashScreen(
+                navigationRouter = navigationRouter,
+                firebaseAuth = firebaseAuth
+            )
+        }
+
+        // --- 2. LOGIN SCREEN ---
+        composable(Destination.LoginScreen.route) {
+            // Zde použijeme LoginScreen, který jsi poslal v dotazu
+            // LoginViewModel si to sosne samo přes hiltViewModel()
+            LoginScreen(
+                onLoginSuccess = {
+                    navigationRouter.navigateToHomeFromLogin()
+                }
+            )
+        }
+        composable(Destination.UserScreen.route) {
+            UserScreen(navigationRouter = navigationRouter)
         }
     }
 }

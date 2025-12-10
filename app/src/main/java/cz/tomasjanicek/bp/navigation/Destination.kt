@@ -39,4 +39,8 @@ sealed class Destination(val route: String) {
     object CycleScreen : Destination("cycle_screen")
     /** NOVÁ DESTINACE: Obrazovka pro přidání/editaci očkování. */
     object AddEditInjectionScreen : Destination("add_edit_injection_screen")
+
+    object SplashScreen : Destination("splash_screen")
+    object LoginScreen : Destination("login_screen")
+    object UserScreen : Destination("user_screen")
 }

@@ -94,7 +94,7 @@ fun ListOfExaminationScreen(
                 ),
                 title = { Text("Zdravotní záznamy", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Navigace na profil */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToUserScreen() }) {
                         Icon(imageVector = Icons.Filled.Person, contentDescription = "Profil uživatele")
                     }
                 },

@@ -9,13 +9,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.auth.FirebaseAuth
 import cz.tomasjanicek.bp.navigation.Destination
 import cz.tomasjanicek.bp.navigation.NavGraph
 import cz.tomasjanicek.bp.ui.theme.BpTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var firebaseAuth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -49,10 +55,11 @@ class MainActivity : ComponentActivity() {
 
                 )
             }
-            // --- KONEC NOVÉHO KÓDU ---
             BpTheme {
                 NavGraph(
-                    startDestination = Destination.ListOfExaminationView.route
+                    // ZMĚNA: Startujeme Splash Screenem
+                    startDestination = Destination.SplashScreen.route,
+                    firebaseAuth = firebaseAuth
                 )
             }
         }

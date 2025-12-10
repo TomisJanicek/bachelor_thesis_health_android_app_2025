@@ -46,4 +46,8 @@ interface INavigationRouter {
 
     /** Naviguje na obrazovku pro přidání/editaci očkování. */
     fun navigateToAddEditInjectionScreen(injectionId: Long?)
+
+    fun navigateToLogin()
+    fun navigateToHomeFromLogin()
+    fun navigateToUserScreen()
 }

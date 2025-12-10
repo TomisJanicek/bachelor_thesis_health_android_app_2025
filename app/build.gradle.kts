@@ -1,16 +1,14 @@
 import java.util.Properties
 
 
-
-
 plugins {
-        alias(libs.plugins.android.application)
-        alias(libs.plugins.jetbrains.kotlin.android)
-        alias(libs.plugins.kotlin.compose)
-        kotlin("kapt")
-        id("dagger.hilt.android.plugin")
-        id("com.google.gms.google-services")
-        id("com.google.firebase.crashlytics")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    kotlin("kapt")
+    id("dagger.hilt.android.plugin")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 
 }
 
@@ -35,6 +33,7 @@ android {
         // --- KONEC ZMĚNY ---
         manifestPlaceholders["MAPS_API_KEY"] = properties.getProperty("MAPS_API_KEY", "")
         buildConfigField("String", "MAPS_API_KEY", "\"${properties.getProperty("MAPS_API_KEY")}\"")
+        buildConfigField("String", "WEB_CLIENT_ID", "\"${properties.getProperty("WEB_CLIENT_ID")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -124,7 +123,7 @@ dependencies {
     implementation(libs.image.labeling.default.common)
     implementation(libs.image.labeling)
     implementation(libs.vision.common)
-    
+
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
 
 
@@ -149,6 +148,17 @@ dependencies {
     androidTestImplementation(libs.hilt.android.testing)
     kaptAndroidTest(libs.hilt.kapt)
     androidTestImplementation("io.mockk:mockk-android:1.14.6")
+
+    // Credential Manager (Moderní auth)
+    implementation("androidx.credentials:credentials:1.3.0") // Zkontroluj nejnovější verzi
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+
+    // Google ID (pro specifické Google Sign-In options)
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth")
+
 
 }
 
