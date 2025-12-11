@@ -107,7 +107,7 @@ fun CustomExaminationRow(
                             Text(
                                 text = examination.purpose,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MyBlack,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier,
@@ -141,7 +141,7 @@ fun CustomExaminationRow(
                             color = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
+                            textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null,
                         )
                     }
                     TagChip(examination.type)

@@ -73,7 +73,7 @@ fun ExaminationSheetContent(
             text = examination.purpose,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onBackground
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -83,12 +83,12 @@ fun ExaminationSheetContent(
                 Icons.Default.CalendarMonth,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = MyBlack
+                tint = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = DateUtils.getDateTimeString(examination.dateTime),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -98,7 +98,7 @@ fun ExaminationSheetContent(
             Text(
                 text = "Poznámka: ${examination.note}",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -108,7 +108,7 @@ fun ExaminationSheetContent(
             Text(
                 text = "Výsledek: ${examination.result}",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -191,7 +191,7 @@ private fun ActionButtons(
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Dokončit a zapsat výsledek")
+                    Text("Dokončit a zapsat výsledek", color = MyBlack)
                 }
                 // Sekundární akce
                 Row(
@@ -199,9 +199,9 @@ private fun ActionButtons(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TextButton(onClick = onEditClick) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp), tint = MyBlack)
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onBackground)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Upravit", color = MyBlack)
+                        Text("Upravit", color = MaterialTheme.colorScheme.onBackground)
                     }
                     TextButton(onClick = onCancelClick) {
                         Icon(
@@ -238,7 +238,7 @@ private fun ActionButtons(
             }
             // Pro COMPLETED stav nezobrazujeme žádná tlačítka
             ExaminationStatus.COMPLETED -> {
-                Text("Toto vyšetření je již dokončeno.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Toto vyšetření je již dokončeno.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground)
             }
         }
     }

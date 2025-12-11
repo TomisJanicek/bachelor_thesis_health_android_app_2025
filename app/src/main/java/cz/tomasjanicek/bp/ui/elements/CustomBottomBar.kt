@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cz.tomasjanicek.bp.navigation.INavigationRouter
+import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.SelectedContent
 import cz.tomasjanicek.bp.ui.theme.UnselectedContent
@@ -84,11 +85,11 @@ fun CustomBottomBar(
                 label = { Text(text = item.title) },
                 alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor   = MaterialTheme.colorScheme.onSurface,
-                    selectedTextColor   = MaterialTheme.colorScheme.onSurface,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                    indicatorColor      = MaterialTheme.colorScheme.secondary
+                    selectedIconColor   = MyBlack,
+                    selectedTextColor   = MyBlack,
+                    unselectedIconColor = MyBlack,
+                    unselectedTextColor = MyBlack,
+                    indicatorColor      = MyPink
                 )
             )
         }

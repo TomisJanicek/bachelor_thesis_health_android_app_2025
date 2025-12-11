@@ -75,7 +75,7 @@ fun ExaminationItemCard(
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    tint = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack               )
+                    tint = if (examination.status == ExaminationStatus.OVERDUE) MyRed else MyBlack)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formattedTime,
@@ -98,7 +98,7 @@ fun ExaminationItemCard(
                 Text(
                     text = formattedDate,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MyBlack,
                     textDecoration = if (examination.status == ExaminationStatus.CANCELLED) TextDecoration.LineThrough else null
                 )
                 Spacer(modifier = Modifier.height(4.dp))

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,22 +24,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.error
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.theme.MyBlack
-import cz.tomasjanicek.bp.ui.theme.MyWhite
+import cz.tomasjanicek.bp.ui.theme.MyRed
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,8 +88,13 @@ fun DoctorEditScreen( // Přejmenováno
                     IconButton(onClick = { navigationRouter.returBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zpět")
                     }
-                }
-                // Odstraněna sekce `actions` pro mazání
+                }, colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
+
             )
         },
         bottomBar = {
@@ -97,7 +104,7 @@ fun DoctorEditScreen( // Přejmenováno
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MyWhite)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(WindowInsets.navigationBars.asPaddingValues())
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -107,7 +114,7 @@ fun DoctorEditScreen( // Přejmenováno
                     // Tlačítko je aktivní, jen pokud je jméno validní a data jsou načtena
                     enabled = data != null && data.nameError == null
                 ) {
-                    Text("Uložit")
+                    Text("Uložit", color = MyBlack)
                 }
             }
         }
@@ -116,7 +123,7 @@ fun DoctorEditScreen( // Přejmenováno
             is DoctorEditUIState.Loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
@@ -141,9 +148,9 @@ fun DoctorEditScreen( // Přejmenováno
             is DoctorEditUIState.Error -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(state.message)
+                    Text(state.message, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
 
@@ -160,7 +167,6 @@ private fun DoctorEditContent( // Přejmenováno
     data: DoctorEditData,
     actions: DoctorEditAction,
     modifier: Modifier = Modifier,
-    // ZMĚNA: Přidáváme nový parametr pro obsluhu kliknutí
     onSelectLocationOnMapClicked: () -> Unit
 ) {
     // Pokud se data ještě nenačetla, nezobrazuj nic
@@ -169,22 +175,24 @@ private fun DoctorEditContent( // Přejmenováno
 
     LazyColumn(
         modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
+        contentPadding = PaddingValues(vertical = 16.dp),
+
     ) {
         item {
             Text(
                 text = doctor.specialization,
                 style = MaterialTheme.typography.titleLarge,
-                color = MyBlack
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
         // Jméno (povinné)
         item {
             OutlinedTextField(
-                value = doctor.name.toString(),
+                value = doctor.name ?: "",
                 onValueChange = { actions.onNameChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Jméno a příjmení") },
@@ -194,10 +202,17 @@ private fun DoctorEditContent( // Přejmenováno
                     if (data.nameError != null) {
                         Text(
                             stringResource(id = data.nameError),
-                            color = MaterialTheme.colorScheme.error
+                            color = MyRed
                         )
                     }
-                }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
         // Telefon
@@ -207,7 +222,14 @@ private fun DoctorEditContent( // Přejmenováno
                 onValueChange = { actions.onPhoneChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Telefon") },
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
         // Email
@@ -217,20 +239,55 @@ private fun DoctorEditContent( // Přejmenováno
                 onValueChange = { actions.onEmailChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Email") },
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
         // Adresa s tlačítkem pro výběr
         item {
+            // Zjistíme, jestli máme nějaká data ke smazání
+            val hasLocationData = !doctor.addressLabel.isNullOrBlank() || doctor.latitude != null
+
             OutlinedTextField(
-                // --- ZMĚNA ZDE ---
-                value = doctor.addressLabel ?: "", // Používáme přejmenované pole
+                value = doctor.addressLabel ?: "",
                 onValueChange = { actions.onLocationChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Adresa / Popis místa") }, // Můžeme vylepšit popisek
+                label = { Text("Adresa / Popis místa") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                ),
                 trailingIcon = {
-                    IconButton(onClick = onSelectLocationOnMapClicked) {
-                        Icon(Icons.Default.Map, contentDescription = "Vybrat na mapě")
+                    // Použijeme Row, abychom mohli mít více ikon vedle sebe
+                    Row {
+                        // 1. Ikona SMAZAT (zobrazí se jen, když jsou data)
+                        if (hasLocationData) {
+                            IconButton(onClick = { actions.onLocationCleared() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close, // Křížek pro smazání
+                                    contentDescription = "Smazat polohu",
+                                    tint = MaterialTheme.colorScheme.error // Červená barva pro efekt
+                                )
+                            }
+                        }
+
+                        // 2. Ikona MAPA (zobrazí se vždy, aby šlo polohu přidat/změnit)
+                        IconButton(onClick = onSelectLocationOnMapClicked) {
+                            Icon(
+                                imageVector = Icons.Default.Map,
+                                contentDescription = "Vybrat na mapě",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
                     }
                 }
             )
@@ -268,7 +325,14 @@ private fun DoctorEditContent( // Přejmenováno
                 onValueChange = { actions.onSubtitleChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Popisek (např. ordinační hodiny)") },
-                minLines = 3
+                minLines = 3,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }

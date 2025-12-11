@@ -61,6 +61,7 @@ import cz.tomasjanicek.bp.model.ExaminationStatus // Importuj tvůj enum
 import cz.tomasjanicek.bp.model.ExaminationWithDoctor
 import cz.tomasjanicek.bp.model.Injection
 import cz.tomasjanicek.bp.ui.elements.CustomInjectionRow
+import cz.tomasjanicek.bp.ui.elements.EmptyStateScreen
 //import cz.tomasjanicek.bp.ui.elements.StatusSelector
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationUIState
 import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationViewModel
@@ -82,15 +83,15 @@ fun ListOfExaminationScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MediumTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MyWhite,
-                    scrolledContainerColor = MyWhite,
-                    titleContentColor = MyBlack,
-                    navigationIconContentColor = MyBlack,
-                    actionIconContentColor = MyBlack
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 title = { Text("Zdravotní záznamy", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
@@ -174,7 +175,11 @@ fun ListOfRecordsContent(
             }
 
             if (examinationsToShow.isEmpty()) {
-                EmptyState(message = "Nebyly nalezeny žádné prohlídky.")
+                EmptyStateScreen(
+                    title = "Tady nic není",
+                    description = "Klikněte na tlačítko níže a přidejte.",
+                    buttonText = "Přidat vyšetření",
+                    onButtonClick = { navigationRouter.navigateToAddEditExaminationScreen(null) })
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -199,7 +204,11 @@ fun ListOfRecordsContent(
         }
         ScreenFilterType.INJECTIONS -> {
             if (allInjections.isEmpty()) {
-                EmptyState(message = "Nebyly nalezeny žádné záznamy o očkování.")
+                EmptyStateScreen(
+                    title = "Žádné očkování",
+                    description = "Nebyly nalezeny žádné záznamy o očkování. Klikněte na tlačítko níže a přidejte první.",
+                    buttonText = "Přidat očkování",
+                    onButtonClick = { navigationRouter.navigateToAddEditInjectionScreen(null)})
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -219,15 +228,6 @@ fun ListOfRecordsContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun EmptyState(message: String) {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp), contentAlignment = Alignment.Center) {
-        Text(text = message)
     }
 }
 
@@ -253,11 +253,11 @@ fun FilterSelector(
                 colors = SegmentedButtonDefaults.colors(
                     activeContainerColor = MyPink, // Vaše barva pro aktivní tlačítko
                     activeContentColor = MyBlack,             // Vaše barva textu na aktivním
-                    activeBorderColor = MyBlack,              // Vaše barva rámečku aktivního
+                    activeBorderColor = MaterialTheme.colorScheme.onBackground,              // Vaše barva rámečku aktivního
 
-                    inactiveContainerColor = MyWhite,           // Vaše barva pro neaktivní
-                    inactiveContentColor = MyBlack,           // Vaše barva textu na neaktivním
-                    inactiveBorderColor = MyBlack             // Vaše barva rámečku neaktivního
+                    inactiveContainerColor = MaterialTheme.colorScheme.background,           // Vaše barva pro neaktivní
+                    inactiveContentColor = MaterialTheme.colorScheme.onBackground,           // Vaše barva textu na neaktivním
+                    inactiveBorderColor = MaterialTheme.colorScheme.onBackground             // Vaše barva rámečku neaktivního
                 )
                 // --- KONEC OPRAVY ---
             ) {

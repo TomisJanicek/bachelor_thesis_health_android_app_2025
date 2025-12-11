@@ -79,7 +79,7 @@ fun CustomInjectionRow(
                 Text(
                     text = "Proti: ${item.disease}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

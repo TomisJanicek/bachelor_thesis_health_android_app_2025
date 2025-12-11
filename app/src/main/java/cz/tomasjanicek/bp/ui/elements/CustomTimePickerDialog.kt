@@ -36,7 +36,7 @@ fun CustomTimePickerDialog(
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp,
-            color = MyWhite
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Column(Modifier.padding(top = 24.dp, bottom = 12.dp)) {
@@ -47,7 +47,6 @@ fun CustomTimePickerDialog(
                             clockDialSelectedContentColor = MyWhite,
                             clockDialUnselectedContentColor = MyBlack,
                             selectorColor = MyPink,
-                            containerColor = MyWhite,
                             periodSelectorBorderColor = MyPink,
                             periodSelectorSelectedContainerColor = MyPink,
                             periodSelectorUnselectedContainerColor = Color.Transparent,

@@ -11,7 +11,5 @@ interface DoctorEditAction {
     fun onEmailChanged(email: String)
     fun onLocationChanged(location: String)
     fun onSubtitleChanged(subtitle: String) // Přidáno dle vašeho seznamu
-    /**
-     * Spustí navigaci na obrazovku pro výběr polohy na mapě.
-     */
+    fun onLocationCleared()
 }

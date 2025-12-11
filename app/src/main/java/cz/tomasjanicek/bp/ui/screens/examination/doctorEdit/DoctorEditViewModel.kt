@@ -171,5 +171,16 @@ class DoctorEditViewModel @Inject constructor(
         super.onCleared()
         doctorSubscriptionJob?.cancel() // Uklidíme po sobě
     }
+    override fun onLocationCleared() {
+        updateState { currentState ->
+            currentState.copy(
+                doctor = currentState.doctor?.copy(
+                    addressLabel = null,
+                    latitude = null,
+                    longitude = null
+                )
+            )
+        }
+    }
 
 }

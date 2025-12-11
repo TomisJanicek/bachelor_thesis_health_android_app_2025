@@ -129,11 +129,11 @@ private fun DetailStatusSelector(
                     count = DetailFilterType.values().size
                 ),
                 colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = MaterialTheme.colorScheme.secondary,
+                    activeContainerColor = MyPink,
                     activeContentColor = MyBlack,
-                    inactiveContainerColor = MyWhite,
-                    inactiveContentColor = MyBlack,
-                    inactiveBorderColor = MaterialTheme.colorScheme.outline
+                    inactiveContainerColor = MaterialTheme.colorScheme.background,
+                    inactiveContentColor = MaterialTheme.colorScheme.onBackground,
+                    inactiveBorderColor = MaterialTheme.colorScheme.onBackground
                 )
             ) {
                 Text(filterType.label)
@@ -214,7 +214,7 @@ fun DetailOfExaminationScreen(
 
         is DetailOfExaminationUIState.Error -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(state.message)
+                Text(state.message, color = MyRed)
             }
         }
     }
@@ -309,7 +309,7 @@ fun DetailOfExaminationContent(
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.onBackground,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -406,6 +406,7 @@ fun DetailOfExaminationContent(
                                         context.startActivity(intent)
                                     }
                                 },
+                                enabled = (doctor?.phone != null) || !doctor?.addressLabel.isNullOrBlank(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
                                     contentColor = MyBlack
@@ -430,6 +431,7 @@ fun DetailOfExaminationContent(
                                     containerColor = MaterialTheme.colorScheme.secondary,
                                     contentColor = MyBlack
                                 ),
+                                enabled = (doctor?.email != null) || !doctor?.addressLabel.isNullOrBlank(),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -500,20 +502,20 @@ fun DetailOfExaminationContent(
                                 text = doctor?.name ?: "Není přiřazen",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
-                                color = MyBlack
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             if (doctorDetails.isNotBlank()) {
                                 Text(
                                     text = doctorDetails,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MyBlack
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                             if (doctor?.subtitle?.isNotBlank() == true) {
                                 Text(
                                     text = doctor.subtitle!!,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MyBlack
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
@@ -543,7 +545,7 @@ fun DetailOfExaminationContent(
                             text = if (showUpcoming) "Žádné budoucí prohlídky." else "Žádné historické prohlídky.",
                             modifier = Modifier.padding(16.dp),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
                     }

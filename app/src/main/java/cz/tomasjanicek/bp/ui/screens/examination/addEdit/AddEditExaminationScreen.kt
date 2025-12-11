@@ -12,17 +12,10 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,39 +25,23 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerColors
-import androidx.compose.material3.TimePickerDefaults
-import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.core.graphics.values
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.tomasjanicek.bp.model.Doctor
@@ -73,12 +50,8 @@ import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.CustomDatePickerDialog
 import cz.tomasjanicek.bp.ui.elements.CustomTimePickerDialog
 import cz.tomasjanicek.bp.ui.theme.MyBlack
-import cz.tomasjanicek.bp.ui.theme.MyGreen
-import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyRed
-import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.utils.DateUtils
-import java.text.SimpleDateFormat
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,29 +88,29 @@ fun AddEditExaminationScreen(
         }
     }
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0), // <-- PŘIDAT TENTO ŘÁDEK
-        containerColor = MyWhite,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     // Použij primární barvu z tvého tématu (která je MyGreen)
-                    containerColor = MyWhite,
-                    scrolledContainerColor = MyWhite,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
 
                     // Barva pro nadpis a ikony
-                    titleContentColor = MyBlack,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 title = {
-                    Text("Přidat /upravit")
+                    Text("Přidat / upravit")
                 },
                 navigationIcon = {
                     IconButton(onClick = { navigationRouter.returBack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
                             contentDescription = "Zpět",
-                            tint = Color.Black // Zpětná šipka černá
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -147,7 +120,8 @@ fun AddEditExaminationScreen(
                     }) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Odstranit"
+                            contentDescription = "Odstranit",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -159,7 +133,7 @@ fun AddEditExaminationScreen(
             Row(modifier = Modifier
                 .fillMaxWidth()
                 // Barva pozadí stejná jako u TopAppBar pro konzistenci
-                .background(MyWhite)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(WindowInsets.navigationBars.asPaddingValues())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -169,7 +143,7 @@ fun AddEditExaminationScreen(
                     // Tlačítko bude aktivní, pouze pokud jsou všechna povinná pole validní
                     enabled = data.purposeError == null && data.doctorError == null && data.dateTimeError == null
                 ) {
-                    Text("Uložit")
+                    Text("Uložit", color = MyBlack)
                 }
             }
         }
@@ -226,12 +200,19 @@ fun AddEditExaminationContent(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Účel vyšetření") },
                 isError = data.purposeError != null,
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                )
             )
             if (data.purposeError != null) {
                 Text(
                     text = stringResource(id = data.purposeError),
-                    color = MaterialTheme.colorScheme.error,
+                    color = MyRed,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(start = 16.dp) // Odsadíme, aby licoval s textem
                 )
@@ -273,11 +254,11 @@ fun AddEditExaminationContent(
                             enabled = true
                         ),
                     colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
                         focusedTextColor = MaterialTheme.colorScheme.primary,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         focusedLabelColor = MaterialTheme.colorScheme.primary,
@@ -288,7 +269,7 @@ fun AddEditExaminationContent(
                 ExposedDropdownMenu(
                     expanded = doctorMenuExpanded,
                     onDismissRequest = { doctorMenuExpanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.onBackground)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 ) {
                     // ZMĚNA: Iterujeme přes seřazený seznam
                     sortedDoctors.forEach { doctor ->
@@ -302,9 +283,9 @@ fun AddEditExaminationContent(
                                 doctorMenuExpanded = false
                             },
                             colors = MenuDefaults.itemColors(
-                                textColor = MaterialTheme.colorScheme.onSurface,
-                                leadingIconColor = MaterialTheme.colorScheme.onSurface,
-                                trailingIconColor = MaterialTheme.colorScheme.onSurface,
+                                textColor = MaterialTheme.colorScheme.onBackground,
+                                leadingIconColor = MaterialTheme.colorScheme.onBackground,
+                                trailingIconColor = MaterialTheme.colorScheme.onBackground,
                                 disabledTextColor = Color.Gray
                             )
                         )
@@ -314,7 +295,7 @@ fun AddEditExaminationContent(
             if (data.doctorError != null) {
                 Text(
                     text = stringResource(id = data.doctorError),
-                    color = MaterialTheme.colorScheme.error,
+                    color = MyRed,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(start = 16.dp)
                 )
@@ -343,11 +324,11 @@ fun AddEditExaminationContent(
                         ), // Důležité pro správné umístění menu
                     colors = OutlinedTextFieldDefaults.colors(
                         // --- Normální stav (není vybráno, není chyba) ---
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
 
                         // --- Stav, když je pole vybráno (kliknuto) ---
                         focusedTextColor = MaterialTheme.colorScheme.primary,
@@ -360,7 +341,7 @@ fun AddEditExaminationContent(
                 ExposedDropdownMenu(
                     expanded = typeMenuExpanded,
                     onDismissRequest = { typeMenuExpanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.onBackground) // Nebo jakákoliv jiná barva
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background) // Nebo jakákoliv jiná barva
                 ) {
                     ExaminationType.values().forEach { type ->
                         DropdownMenuItem(
@@ -381,17 +362,17 @@ fun AddEditExaminationContent(
                 value = DateUtils.getDateTimeString(data.examination.dateTime),
                 onValueChange = { /* Read-only */ },
                 label = { Text("Datum a čas vyšetření") },
-                leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Datum") },
+                leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Datum", tint = MaterialTheme.colorScheme.onBackground) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { showDatePicker = true },
                 readOnly = true,
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = MyBlack,
-                    disabledBorderColor = MyBlack,
-                    disabledLeadingIconColor = MyBlack,
-                    disabledLabelColor = MyBlack,
+                    disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                    disabledBorderColor = MaterialTheme.colorScheme.onBackground,
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onBackground,
+                    disabledLabelColor = MaterialTheme.colorScheme.onBackground,
                 )
             )
         }
@@ -403,7 +384,14 @@ fun AddEditExaminationContent(
                 onValueChange = { actions.onNoteChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Poznámka (nepovinné)") },
-                minLines = 3
+                minLines = 3,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }
