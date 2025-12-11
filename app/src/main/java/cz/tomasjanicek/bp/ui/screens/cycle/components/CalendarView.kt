@@ -1,10 +1,8 @@
 package cz.tomasjanicek.bp.ui.screens.cycle.components
 
-import androidx.compose.animation.core.copy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cz.tomasjanicek.bp.ui.screens.cycle.CalendarDay
@@ -30,9 +26,6 @@ import cz.tomasjanicek.bp.ui.screens.cycle.DayType
 import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
-import cz.tomasjanicek.bp.ui.theme.MyWhite
-import cz.tomasjanicek.bp.ui.theme.Pink80
-import cz.tomasjanicek.bp.ui.theme.TagGreen
 import cz.tomasjanicek.bp.ui.theme.TagPurple
 
 @Composable
@@ -50,7 +43,7 @@ fun CalendarView(
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = header, fontWeight = FontWeight.Bold, color = MyBlack)
+                    Text(text = header, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }
@@ -140,7 +133,8 @@ private fun DayCell(
     }
 
     // Text: bílý jen na plném pozadí, jinak černý
-    val textColor = if (backgroundColor != Color.Transparent) MyWhite else MyBlack
+    val textColor = if (backgroundColor != Color.Transparent) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
+
 
     Box(
         modifier = modifier

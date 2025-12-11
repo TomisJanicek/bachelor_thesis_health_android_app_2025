@@ -2,7 +2,6 @@ package cz.tomasjanicek.bp.ui.screens.cycle
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,20 +37,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -62,11 +54,8 @@ import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyWhite
-import cz.tomasjanicek.bp.ui.theme.Pink80
-import cz.tomasjanicek.bp.ui.theme.TagGreen
 import cz.tomasjanicek.bp.ui.theme.TagPurple
 import kotlinx.coroutines.delay
-import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -93,18 +82,18 @@ fun CycleScreen(
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MyWhite,
-                    titleContentColor = MyBlack,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
                 ),
                 title = { Text("Sledování cyklu") },
                 navigationIcon = {
                     IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.Person, "Profil")
+                        Icon(Icons.Default.Person, "Profil", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.Settings, "Nastavení")
+                        Icon(Icons.Default.Settings, "Nastavení", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             )
@@ -118,7 +107,7 @@ fun CycleScreen(
     ) { padding ->
         Column(
             modifier = Modifier
-                .background(MyWhite)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
@@ -198,7 +187,7 @@ private fun StatusCarouselAndStats(uiState: CycleUIState) {
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MyBlack
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -218,9 +207,9 @@ private fun StatusCarouselAndStats(uiState: CycleUIState) {
 @Composable
 private fun StatItem(label: String, value: Long) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground)
         val displayText = if (value > 0) "$value dní" else "Málo dat"
-        Text(text = displayText, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MyBlack)
+        Text(text = displayText, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
     }
 }
 
@@ -234,11 +223,11 @@ private fun MonthSelector(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = onPrevious) {
-            Icon(Icons.Default.ChevronLeft, "Předchozí měsíc", tint = MyBlack)
+            Icon(Icons.Default.ChevronLeft, "Předchozí měsíc", tint = MaterialTheme.colorScheme.onBackground)
         }
-        Text(text = "$month $year", style = MaterialTheme.typography.headlineSmall, color = MyBlack)
+        Text(text = "$month $year", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
         IconButton(onClick = onNext) {
-            Icon(Icons.Default.ChevronRight, "Další měsíc", tint = MyBlack)
+            Icon(Icons.Default.ChevronRight, "Další měsíc", tint = MaterialTheme.colorScheme.onBackground)
         }
     }
 }
@@ -270,7 +259,7 @@ private fun LegendItem(color: Color, text: String) {
             .clip(CircleShape)
             .background(color))
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, fontSize = 14.sp, color = MyBlack)
+        Text(text = text, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
     }
 }
 
