@@ -67,6 +67,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.values
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cz.tomasjanicek.bp.model.Doctor
 import cz.tomasjanicek.bp.model.ExaminationType
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.CustomDatePickerDialog
@@ -237,14 +238,28 @@ fun AddEditExaminationContent(
             }
         }
         item {
-            val selectedDoctorName =
-                data.doctors.find { it.id == data.examination.doctorId }?.specialization ?: ""
+            // 1. Pomocná funkce pro formátování jména (aby se logika neopakovala)
+            fun getDoctorDisplayName(doctor: Doctor): String {
+                return if (!doctor.name.isNullOrBlank()) {
+                    "${doctor.name} (${doctor.specialization})"
+                } else {
+                    doctor.specialization
+                }
+            }
+
+            // 2. Získání textu pro vybraného lékaře (použijeme stejné formátování)
+            val selectedDoctor = data.doctors.find { it.id == data.examination.doctorId }
+            val selectedDoctorText = selectedDoctor?.let { getDoctorDisplayName(it) } ?: ""
+
+            // 3. Seřazení seznamu lékařů abecedně podle zobrazovaného názvu
+            val sortedDoctors = data.doctors.sortedBy { getDoctorDisplayName(it) }
+
             ExposedDropdownMenuBox(
                 expanded = doctorMenuExpanded,
                 onExpandedChange = { doctorMenuExpanded = !doctorMenuExpanded }
             ) {
                 OutlinedTextField(
-                    value = selectedDoctorName,
+                    value = selectedDoctorText, // Zde použijeme formátovaný text
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Lékař") },
@@ -253,19 +268,16 @@ fun AddEditExaminationContent(
                     isError = data.doctorError != null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor( // <-- Nové, správné volání
+                        .menuAnchor(
                             type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                            enabled = true // Pole je aktivní pro rozbalení menu
+                            enabled = true
                         ),
                     colors = OutlinedTextFieldDefaults.colors(
-                        // --- Normální stav (není vybráno, není chyba) ---
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                        // --- Stav, když je pole vybráno (kliknuto) ---
                         focusedTextColor = MaterialTheme.colorScheme.primary,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         focusedLabelColor = MaterialTheme.colorScheme.primary,
@@ -276,27 +288,23 @@ fun AddEditExaminationContent(
                 ExposedDropdownMenu(
                     expanded = doctorMenuExpanded,
                     onDismissRequest = { doctorMenuExpanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.onBackground) // Nebo jakákoliv jiná barva
+                    modifier = Modifier.background(MaterialTheme.colorScheme.onBackground)
                 ) {
-                    data.doctors.forEach { doctor ->
+                    // ZMĚNA: Iterujeme přes seřazený seznam
+                    sortedDoctors.forEach { doctor ->
                         DropdownMenuItem(
-                            // Zobrazíme jméno i specializaci
-                            text = { Text("${doctor.name} (${doctor.specialization})") },
+                            text = {
+                                // Zde voláme naši formátovací funkci
+                                Text(text = getDoctorDisplayName(doctor))
+                            },
                             onClick = {
                                 actions.onDoctorChanged(doctor.id)
                                 doctorMenuExpanded = false
                             },
-
-                            // ZDE SE NASTAVUJÍ BARVY PRO POLOŽKU V MENU
-
                             colors = MenuDefaults.itemColors(
-                                // Barva textu položky
                                 textColor = MaterialTheme.colorScheme.onSurface,
-                                // Barva ikony na začátku (pokud by byla)
                                 leadingIconColor = MaterialTheme.colorScheme.onSurface,
-                                // Barva ikony na konci (pokud by byla)
                                 trailingIconColor = MaterialTheme.colorScheme.onSurface,
-                                // Barva pro neaktivní (disabled) položku
                                 disabledTextColor = Color.Gray
                             )
                         )
@@ -308,7 +316,7 @@ fun AddEditExaminationContent(
                     text = stringResource(id = data.doctorError),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp) // Odsadíme, aby licoval s textem
+                    modifier = Modifier.padding(start = 16.dp)
                 )
             }
         }

@@ -120,7 +120,12 @@ class AddEditExaminationViewModel @Inject constructor(
     }
 
     override fun onPurposeChanged(purpose: String) {
-        updateState { it.copy(examination = it.examination.copy(purpose = purpose)) }
+        updateState {
+            it.copy(
+                examination = it.examination.copy(purpose = purpose),
+                purposeError = null // <--- TOTO JE KLÍČOVÉ: Vymazat chybu při psaní
+            )
+        }
     }
 
     override fun onTypeChanged(type: ExaminationType) {
@@ -128,11 +133,21 @@ class AddEditExaminationViewModel @Inject constructor(
     }
 
     override fun onDateTimeChanged(dateTime: Long) {
-        updateState { it.copy(examination = it.examination.copy(dateTime = dateTime)) }
+        updateState {
+            it.copy(
+                examination = it.examination.copy(dateTime = dateTime),
+                dateTimeError = null // <--- Vymazat chybu při změně času
+            )
+        }
     }
 
     override fun onDoctorChanged(doctorId: Long) {
-        updateState { it.copy(examination = it.examination.copy(doctorId = doctorId)) }
+        updateState {
+            it.copy(
+                examination = it.examination.copy(doctorId = doctorId),
+                doctorError = null // <--- Vymazat chybu při výběru lékaře
+            )
+        }
     }
 
     override fun onNoteChanged(note: String) {
