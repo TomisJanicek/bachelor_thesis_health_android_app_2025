@@ -138,20 +138,20 @@ private fun AddEditInjectionContent(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MyWhite, titleContentColor = MyBlack),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background, titleContentColor = MaterialTheme.colorScheme.onBackground),
                 title = { Text(if (isEditMode) "Upravit očkování" else "Přidat očkování") },
                 navigationIcon = {
                     IconButton(onClick = { navigationRouter.returBack() }) {
-                        Icon(Icons.Default.ArrowBackIosNew, "Zpět", tint = Color.Black)
+                        Icon(Icons.Default.ArrowBackIosNew, "Zpět", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
                     if (isEditMode) {
                         IconButton(onClick = { actions.deleteInjection() }) {
-                            Icon(Icons.Outlined.Delete, "Odstranit")
+                            Icon(Icons.Outlined.Delete, "Odstranit", tint = MaterialTheme.colorScheme.onBackground)
                         }
                     }
                 }
@@ -169,7 +169,7 @@ private fun AddEditInjectionContent(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = data.nameError == null && data.diseaseError == null
                 ) {
-                    Text("Uložit")
+                    Text("Uložit", color = MyBlack)
                 }
             }
         }
@@ -195,12 +195,10 @@ private fun AddEditInjectionContent(
                         readOnly = true,
                         enabled = false,
                         colors = OutlinedTextFieldDefaults.colors(
-                            disabledTextColor = MyBlack,
-                            disabledContainerColor = Color.Transparent,
-                            disabledBorderColor = MaterialTheme.colorScheme.outline,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                            disabledBorderColor = MaterialTheme.colorScheme.onBackground,
+                            disabledLeadingIconColor = MaterialTheme.colorScheme.onBackground,
+                            disabledLabelColor = MaterialTheme.colorScheme.onBackground,
                         )
                     )
                 }
@@ -220,7 +218,14 @@ private fun AddEditInjectionContent(
                     onValueChange = { actions.onDiseaseChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Chrání proti") },
-                    isError = data.diseaseError != null
+                    isError = data.diseaseError != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 if (data.diseaseError != null) {
                     Text(
@@ -242,9 +247,10 @@ private fun AddEditInjectionContent(
                     readOnly = true,
                     enabled = false, // Plně vypnuté
                     colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MyBlack,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                        disabledBorderColor = MaterialTheme.colorScheme.onBackground,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onBackground,
+                        disabledLabelColor = MaterialTheme.colorScheme.onBackground,
                     )
                 )
             }
@@ -262,10 +268,10 @@ private fun AddEditInjectionContent(
                     readOnly = true,
                     enabled = false,
                     colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MyBlack,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledLeadingIconColor = MyBlack,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                        disabledBorderColor = MaterialTheme.colorScheme.onBackground,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onBackground,
+                        disabledLabelColor = MaterialTheme.colorScheme.onBackground,
                     )
                 )
             }
@@ -277,7 +283,14 @@ private fun AddEditInjectionContent(
                     onValueChange = { actions.onNoteChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Poznámka (nepovinné)") },
-                    minLines = 3
+                    minLines = 3,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
         }
