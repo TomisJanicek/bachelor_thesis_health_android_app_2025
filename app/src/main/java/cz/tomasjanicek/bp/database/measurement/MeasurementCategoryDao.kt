@@ -59,4 +59,10 @@ interface MeasurementCategoryDao {
 
     @Query("DELETE FROM measurement_category_fields WHERE categoryId = :categoryId")
     suspend fun deleteFieldsByCategoryId(categoryId: Long)
+
+    @Query("SELECT * FROM measurement_categories")
+    suspend fun getAllCategoriesList(): List<MeasurementCategory>
+
+    @Query("SELECT * FROM measurement_category_fields")
+    suspend fun getAllFieldsList(): List<MeasurementCategoryField>
 }

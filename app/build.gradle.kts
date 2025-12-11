@@ -63,6 +63,15 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/LICENSE.md"
             excludes += "META-INF/LICENSE-notice.md" // Přidání pravidla pro vyloučení konfliktu
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE"
+            excludes += "META-INF/LICENSE.txt"
+            excludes += "META-INF/license.txt"
+            excludes += "META-INF/NOTICE"
+            excludes += "META-INF/NOTICE.txt"
+            excludes += "META-INF/notice.txt"
+            excludes += "META-INF/ASL2.0"
+            excludes += "META-INF/*.kotlin_module"
         }
     }
 }
@@ -118,12 +127,6 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.accompanist.permissions)
 
-    // === ML Kit (Image Labeling) ===
-    implementation(libs.image.labeling.common)
-    implementation(libs.image.labeling.default.common)
-    implementation(libs.image.labeling)
-    implementation(libs.vision.common)
-
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
 
 
@@ -158,6 +161,19 @@ dependencies {
 
     // Firebase Auth
     implementation("com.google.firebase:firebase-auth")
+
+    // Google Sign-In a Drive API
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.http-client:google-http-client-gson:1.43.3")
+    implementation("com.google.api-client:google-api-client-android:2.2.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+    implementation("com.google.http-client:google-http-client-android:1.43.3")
+
+    // WorkManager + Hilt podpora
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+
 
 
 }

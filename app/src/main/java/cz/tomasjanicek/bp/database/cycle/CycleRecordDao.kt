@@ -26,4 +26,10 @@ interface CycleRecordDao {
     /** Vrátí záznam pro konkrétní datum. */
     @Query("SELECT * FROM cycle_records WHERE date = :date")
     suspend fun getRecordForDate(date: LocalDate): CycleRecord?
+
+    @Query("SELECT * FROM cycle_records")
+    suspend fun getAllList(): List<CycleRecord>
+
+    @Query("DELETE FROM cycle_records")
+    suspend fun deleteAll()
 }

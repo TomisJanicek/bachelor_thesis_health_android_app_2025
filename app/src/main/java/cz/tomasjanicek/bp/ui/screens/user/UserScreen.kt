@@ -1,5 +1,7 @@
 package cz.tomasjanicek.bp.ui.screens.user
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -28,10 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
+import com.google.api.services.drive.DriveScopes
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 
 @Composable
@@ -41,9 +49,21 @@ fun UserScreen(
 ) {
     val user by viewModel.currentUser.collectAsState()
     val isSigningOut by viewModel.isSigningOut.collectAsState()
+    val isGuest by viewModel.isGuest.collectAsState()
+    val context = LocalContext.current
 
-    // Pokud je user null, znamená to, že jsme v režimu hosta (Guest Mode)
-    val isGuest = user == null
+    // --- MAGIE PRO ZÍSKÁNÍ OPRÁVNĚNÍ K DISKU ---
+    // Toto zachytí výsledek, až uživatel odklikne "Povolit přístup k Disku"
+    val googlePermissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // Ať už to dopadlo jakkoliv (OK nebo Zrušeno), spustíme proces odhlášení.
+        // Pokud dal OK, repository uvnitř signOut() bude mít oprávnění a záloha projde.
+        // Pokud to zrušil, záloha selže, ale odhlášení proběhne (díky naší záchranné brzdě).
+        viewModel.onSignOutClick {
+            navigationRouter.navigateToLogin()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -52,9 +72,8 @@ fun UserScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // 1. Profilová fotka (nebo ikona pro hosta)
+        // 1. Profilová fotka
         if (isGuest) {
-            // Zástupný symbol pro hosta
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -71,7 +90,6 @@ fun UserScreen(
                 )
             }
         } else {
-            // Google profilová fotka
             AsyncImage(
                 model = user?.photoUrl,
                 contentDescription = "Profilová fotka",
@@ -85,16 +103,16 @@ fun UserScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 2. Jméno / Typ účtu
+        // 2. Jméno
         if (isGuest) {
             Text(
-                text = "Lokální účet",
+                text = "Lokální účet (Host)",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
         } else {
             Text(
-                text = user?.displayName ?: "Neznámý uživatel",
+                text = user?.displayName ?: "Uživatel",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -102,37 +120,56 @@ fun UserScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 3. Email / Upozornění
+        // 3. Info texty
         if (isGuest) {
             Text(
-                text = "Data jsou uložena pouze v telefonu.",
+                text = "Data jsou uložena pouze v tomto zařízení.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
             Text(
-                text = "Při odhlášení budou smazána!",
+                text = "Ukončením režimu hosta o data přijdete!",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.Bold
             )
         } else {
             Text(
-                text = user?.email ?: "Email nedostupný",
+                text = user?.email ?: "",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
+            )
+            Text(
+                text = "Při odhlášení se pokusíme data zálohovat.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // 4. Tlačítko Odhlásit / Ukončit
+        // 4. Tlačítko
         Button(
             onClick = {
-                viewModel.onSignOutClick {
-                    navigationRouter.navigateToLogin()
+                if (isGuest) {
+                    // Host nepotřebuje zálohovat na Disk -> rovnou mažeme
+                    viewModel.onSignOutClick {
+                        navigationRouter.navigateToLogin()
+                    }
+                } else {
+                    // --- UŽIVATEL S GOOGLE ÚČTEM ---
+                    // Než ho odhlásíme, musíme si vyžádat oprávnění pro Drive (pokud ho ještě nemá).
+                    // Spustíme Google Sign-In intent s DRIVE scope.
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .requestScopes(Scope(DriveScopes.DRIVE_APPDATA)) // <-- Chceme Disk
+                        .build()
+                    val client = GoogleSignIn.getClient(context, gso)
+
+                    // Spustíme intent -> výsledek zachytí 'googlePermissionsLauncher' nahoře
+                    googlePermissionsLauncher.launch(client.signInIntent)
                 }
             },
-            // Pokud se odhlašuje, tlačítko zakážeme
             enabled = !isSigningOut,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error
@@ -140,15 +177,15 @@ fun UserScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             if (isSigningOut) {
-                // Pokud pracujeme, ukážeme malé kolečko
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     color = Color.White,
                     strokeWidth = 2.dp
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Zálohuji a odhlašuji...")
             } else {
-                // Text tlačítka se liší podle typu účtu
-                Text(if (isGuest) "Ukončit režim hosta" else "Odhlásit se")
+                Text(if (isGuest) "Ukončit režim a smazat data" else "Odhlásit se")
             }
         }
     }

@@ -15,7 +15,5 @@ data class Doctor(
     @ColumnInfo(name = "description") var subtitle: String? = null,
     @ColumnInfo(name = "latitude") var latitude: Double? = null,
     @ColumnInfo(name = "longitude") var longitude: Double? = null,
-    @ColumnInfo(name = "location") val addressLabel: String? = null, // např. "Třebíč Poliklinika" Využít reverse geolocation
-
-
+    @ColumnInfo(name = "location") val addressLabel: String? = null,
 )

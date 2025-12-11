@@ -21,6 +21,7 @@ import cz.tomasjanicek.bp.database.measurement.MeasurementDao
 import cz.tomasjanicek.bp.database.medicine.IMedicineRepository
 import cz.tomasjanicek.bp.database.medicine.LocalMedicineRepositoryImpl
 import cz.tomasjanicek.bp.database.medicine.MedicineDao
+import cz.tomasjanicek.bp.services.BackupScheduler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,45 +35,52 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideExaminationsRepository(
-        dao: ExaminationDao
-    ): ILocalExaminationsRepository = LocalExaminationsRepositoryImpl(dao)
+        dao: ExaminationDao,
+        backupScheduler: BackupScheduler // 1. Injectneme Scheduler sem
+    ): ILocalExaminationsRepository = LocalExaminationsRepositoryImpl(dao, backupScheduler) // 2. Předáme ho konstruktoru
 
     @Provides
     @Singleton
     fun provideDoctorsRepository(
-        dao: DoctorDao
-    ): ILocalDoctorsRepository = LocalDoctorsRepositoryImpl(dao)
+        dao: DoctorDao,
+        backupScheduler: BackupScheduler
+    ): ILocalDoctorsRepository = LocalDoctorsRepositoryImpl(dao, backupScheduler)
 
     @Provides
     @Singleton
     fun provideMeasurementCategoriesRepository(
-        dao: MeasurementCategoryDao
+        dao: MeasurementCategoryDao,
+        backupScheduler: BackupScheduler
     ): ILocalMeasurementCategoriesRepository =
-        LocalMeasurementCategoriesRepositoryImpl(dao)
+        LocalMeasurementCategoriesRepositoryImpl(dao, backupScheduler)
 
     @Provides
     @Singleton
     fun provideMeasurementsRepository(
-        dao: MeasurementDao
+        dao: MeasurementDao,
+        backupScheduler: BackupScheduler
     ): ILocalMeasurementsRepository =
-        LocalMeasurementsRepositoryImpl(dao)
+        LocalMeasurementsRepositoryImpl(dao, backupScheduler)
 
     @Provides
     @Singleton
     fun provideMedicineRepository(
-        dao: MedicineDao
-    ): IMedicineRepository = LocalMedicineRepositoryImpl(dao)
+        dao: MedicineDao,
+        backupScheduler: BackupScheduler
+    ): IMedicineRepository = LocalMedicineRepositoryImpl(dao, backupScheduler)
 
     @Provides
     @Singleton
     fun provideCycleRepository(
-        dao: CycleRecordDao
-    ): ICycleRepository = CycleRepositoryImpl(dao)
+        dao: CycleRecordDao,
+        backupScheduler: BackupScheduler
+    ): ICycleRepository = CycleRepositoryImpl(dao, backupScheduler)
 
     @Provides
     @Singleton
     fun provideInjectionRepository(
-        dao: InjectionDao
-    ): IInjectionRepository = InjectionRepositoryImpl(dao)
+        dao: InjectionDao,
+        backupScheduler: BackupScheduler
+    ): IInjectionRepository = InjectionRepositoryImpl(dao, backupScheduler)
 
 }

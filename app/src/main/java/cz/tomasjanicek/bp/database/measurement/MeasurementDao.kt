@@ -114,4 +114,10 @@ interface MeasurementDao {
     """)
     fun getMeasurementsWithValuesBetween(startDate: Long, endDate: Long): Flow<List<MeasurementWithValues>>
 
+    @Query("SELECT * FROM measurements")
+    suspend fun getAllMeasurementsList(): List<Measurement>
+
+    @Query("SELECT * FROM measurement_values")
+    suspend fun getAllValuesList(): List<MeasurementValue>
+
 }

@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DoctorDao {
 
-    @Query("SELECT * FROM doctors")
+    @Query("SELECT * FROM doctors ORDER BY id ASC")
     fun getAll(): Flow<List<Doctor>>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(doctor: Doctor): Long
 
     @Update
@@ -22,23 +22,36 @@ interface DoctorDao {
     @Query("SELECT * FROM doctors WHERE id = :id")
     suspend fun getDoctor(id: Long?): Doctor?
 
+    // Kompletní smazání (použijeme jen výjimečně, např. při odinstalaci nebo tvrdém resetu)
     @Query("DELETE FROM doctors")
     suspend fun deleteAll()
 
-    // --- PŘIDEJ TUTO METODU ---
-    //@Insert(onConflict = OnConflictStrategy.IGNORE)
-    //suspend fun insertAll(doctors: List<Doctor>)
-    // --- KONEC PŘIDANÉ METODY ---
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // Inicializace seznamu - použijeme OnConflictStrategy.IGNORE, aby se nepřepsala existující data, pokud by se ID shodovala
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(doctors: List<Doctor>)
 
     @Query("SELECT COUNT(*) FROM doctors")
     suspend fun getCount(): Int
 
-    // --- PŘIDEJTE TUTO NOVOU METODU ---
     @Transaction
     @Query("SELECT * FROM doctors WHERE id = :doctorId")
     fun getDoctorWithData(doctorId: Long): Flow<Doctor?>
-    // --- KONEC NOVÉ METODY ---
+
+    @Query("SELECT * FROM doctors")
+    suspend fun getAllList(): List<Doctor>
+
+    // --- NOVÁ METODA PRO RESET (Soft Delete) ---
+    // Smaže pouze uživatelská data, ale zachová strukturu tabulky (ID, Specializaci, Obrázek)
+    // Pozor: Sloupec v DB se jmenuje 'description', i když v modelu je to 'subtitle'
+    @Query("""
+        UPDATE doctors 
+        SET name = NULL, 
+            phone = NULL, 
+            email = NULL, 
+            description = NULL, 
+            latitude = NULL, 
+            longitude = NULL, 
+            location = NULL
+    """)
+    suspend fun resetAllDoctorData()
 }

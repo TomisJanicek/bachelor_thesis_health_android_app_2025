@@ -4,6 +4,8 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import com.google.firebase.auth.FirebaseAuth
+import cz.tomasjanicek.bp.database.DatabaseCleaner
+import cz.tomasjanicek.bp.repository.GoogleDriveRepository
 import cz.tomasjanicek.bp.ui.screens.settings.SettingsManager
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,9 +25,16 @@ object AuthModule {
     fun provideAuthRepository(
         @ApplicationContext context: Context,
         firebaseAuth: FirebaseAuth,
-        settingsManager: SettingsManager // <--- PŘIDÁNO: Hilt nám ho sem pošle
+        settingsManager: SettingsManager,
+        databaseCleaner: DatabaseCleaner, // <-- Inject
+        driveRepository: GoogleDriveRepository // <-- Inject
     ): AuthRepository {
-        // Musíme ho předat do konstruktoru
-        return AuthRepositoryImpl(context, firebaseAuth, settingsManager)
+        return AuthRepositoryImpl(
+            context,
+            firebaseAuth,
+            settingsManager,
+            databaseCleaner,
+            driveRepository
+        )
     }
 }

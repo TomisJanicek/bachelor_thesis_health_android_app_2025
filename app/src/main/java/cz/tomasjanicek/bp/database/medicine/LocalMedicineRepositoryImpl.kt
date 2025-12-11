@@ -5,6 +5,7 @@ import cz.tomasjanicek.bp.model.Medicine
 import cz.tomasjanicek.bp.model.MedicineReminder
 import cz.tomasjanicek.bp.model.RegularityType
 import cz.tomasjanicek.bp.model.ReminderStatus
+import cz.tomasjanicek.bp.services.BackupScheduler
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.ZoneId
@@ -15,7 +16,8 @@ import kotlinx.coroutines.flow.firstOrNull // Přidej tento import
 import java.time.format.DateTimeFormatter
 
 class LocalMedicineRepositoryImpl @Inject constructor(
-    private val dao: MedicineDao
+    private val dao: MedicineDao,
+    private val backupScheduler: BackupScheduler
 ) : IMedicineRepository {
 
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -56,6 +58,7 @@ class LocalMedicineRepositoryImpl @Inject constructor(
         if (newReminders.isNotEmpty()) {
             dao.insertReminders(newReminders)
         }
+        backupScheduler.scheduleBackup()
     }
 
     override suspend fun updateReminderStatus(reminderId: Long, isCompleted: Boolean) {
@@ -64,6 +67,7 @@ class LocalMedicineRepositoryImpl @Inject constructor(
             it.status = if (isCompleted) ReminderStatus.COMPLETED else ReminderStatus.PLANNED
             it.completionDateTime = if (isCompleted) System.currentTimeMillis() else null
             dao.updateReminder(it)
+            backupScheduler.scheduleBackup()
         }
     }
 
@@ -72,6 +76,7 @@ class LocalMedicineRepositoryImpl @Inject constructor(
         dao.deleteRemindersForMedicine(medicineId)
         // A následně i samotné nastavení léku
         dao.deleteMedicine(medicineId)
+        backupScheduler.scheduleBackup()
     }
 
     override suspend fun getMedicineByIdOnce(id: Long): Medicine? {

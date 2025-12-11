@@ -75,4 +75,18 @@ interface MedicineDao {
         AND status = 'PLANNED'
     """)
     suspend fun deleteFutureRemindersForMedicine(medicineId: Long, sinceTimestamp: Long)
+
+    @Query("SELECT * FROM medicines")
+    suspend fun getAllMedicinesList(): List<Medicine>
+
+    @Query("SELECT * FROM medicine_reminders")
+    suspend fun getAllRemindersList(): List<MedicineReminder>
+
+    @Query("DELETE FROM medicines")
+    suspend fun deleteAllMedicines()
+
+    @Query("DELETE FROM medicine_reminders")
+    suspend fun deleteAllReminders()
+
+
 }

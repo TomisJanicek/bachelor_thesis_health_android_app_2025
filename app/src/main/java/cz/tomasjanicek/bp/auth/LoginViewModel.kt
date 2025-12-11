@@ -36,10 +36,15 @@ class LoginViewModel @Inject constructor(
         _loginState.value = LoginState.Idle
     }
     fun onContinueAsGuestClick(onSuccess: () -> Unit) {
-        // Nastavíme, že jsme host
-        repository.setGuestMode(true)
-        // A rovnou jdeme dál
-        onSuccess()
+        viewModelScope.launch { // <-- Musí to být v coroutine
+            _loginState.value = LoginState.Loading // Můžeme ukázat loading, protože se maže DB
+
+            // Nastavíme, že jsme host a PROMAŽEME DB
+            repository.setGuestMode(true)
+
+            _loginState.value = LoginState.Success // nebo Idle
+            onSuccess()
+        }
     }
 }
 

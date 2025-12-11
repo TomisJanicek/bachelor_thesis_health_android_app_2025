@@ -51,4 +51,7 @@ interface ExaminationDao {
     @Transaction
     @Query("SELECT * FROM examinations WHERE id = :examinationId")
     fun getExaminationWithDoctorById(examinationId: Long): Flow<ExaminationWithDoctor?>
+
+    @Query("SELECT * FROM examinations")
+    suspend fun getAllList(): List<Examination>
 }

@@ -15,33 +15,51 @@ class UserViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 
-    // Stav držící data uživatele (Jméno, Email, Fotka)
     private val _currentUser = MutableStateFlow<FirebaseUser?>(null)
     val currentUser = _currentUser.asStateFlow()
 
-    // NOVÉ: Stav pro indikaci odhlašování
     private val _isSigningOut = MutableStateFlow(false)
     val isSigningOut = _isSigningOut.asStateFlow()
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+
+    // NOVÉ: Explicitní stav pro režim hosta
+    private val _isGuest = MutableStateFlow(false)
+    val isGuest = _isGuest.asStateFlow()
+
     init {
-        // Hned při startu ViewModelu si vytáhneme aktuálního uživatele z Repository
         _currentUser.value = repository.getCurrentUser()
+        // Zjistíme, jestli jsme v režimu hosta
+        _isGuest.value = repository.isGuestMode()
     }
 
-    // Metoda pro odhlášení
     fun onSignOutClick(onSignOutCompleted: () -> Unit) {
         viewModelScope.launch {
-            // 1. Zobrazíme loading
             _isSigningOut.value = true
+            _error.value = null // Reset chyby
 
-            // 2. Provedeme asynchronní odhlášení (toto trvá)
-            repository.signOut()
+            try {
+                // Teď je to bezpečné:
+                // - Pokud je host, smaže se a projde to.
+                // - Pokud je user a záloha OK, smaže se a projde to.
+                // - Pokud je user a záloha FAIL, skočí to do 'catch'
+                repository.signOut()
 
-            // 3. Hotovo -> navigace
-            onSignOutCompleted()
+                // Když jsme tady, vše dopadlo dobře
+                onSignOutCompleted()
 
-            // (Volitelně vrátíme stav zpět, ale to už budeme na jiné obrazovce)
-            _isSigningOut.value = false
+            } catch (e: Exception) {
+                // Záloha selhala -> Zůstáváme na obrazovce a ukážeme chybu
+                _error.value = e.message
+            } finally {
+                _isSigningOut.value = false
+            }
         }
+    }
+
+    // Metoda pro reset chyby (volatelné z UI po zobrazení snackbaru)
+    fun clearError() {
+        _error.value = null
     }
 }

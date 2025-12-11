@@ -19,9 +19,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var repository: AuthRepository
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -57,8 +54,7 @@ class MainActivity : ComponentActivity() {
             }
             BpTheme {
                 NavGraph(
-                    startDestination = Destination.SplashScreen.route,
-                    repository = repository // <--- Posíláme do grafu
+                    startDestination = Destination.SplashScreen.route
                 )
             }
         }

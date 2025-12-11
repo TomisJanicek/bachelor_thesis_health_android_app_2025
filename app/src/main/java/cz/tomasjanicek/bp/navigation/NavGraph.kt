@@ -36,8 +36,7 @@ fun NavGraph(
     navigationRouter: INavigationRouter = remember {
         NavigationRouterImpl(navController)
     },
-    startDestination: String,
-    repository: AuthRepository
+    startDestination: String
 ) {
     NavHost(
         navController = navController,
@@ -270,8 +269,9 @@ fun NavGraph(
         // --- 1. SPLASH SCREEN ---
         composable(Destination.SplashScreen.route) {
             SplashScreen(
-                navigationRouter = navigationRouter,
-                repository = repository
+                navigationRouter = navigationRouter
+                // ODSTRANĚNO: repository = repository
+                // SplashScreen si teď ViewModel injektuje sám přes Hilt
             )
         }
 

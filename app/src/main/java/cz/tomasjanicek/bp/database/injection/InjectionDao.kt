@@ -20,4 +20,10 @@ interface InjectionDao {
 
     @Query("SELECT * FROM injections WHERE id = :id")
     fun getInjectionById(id: Long): Flow<Injection>
+
+    @Query("SELECT * FROM injections")
+    suspend fun getAllList(): List<Injection>
+
+    @Query("DELETE FROM injections")
+    suspend fun deleteAll()
 }
