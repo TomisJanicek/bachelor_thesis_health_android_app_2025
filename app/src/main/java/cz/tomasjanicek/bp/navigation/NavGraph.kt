@@ -26,6 +26,7 @@ import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCateg
 import cz.tomasjanicek.bp.ui.screens.measurement.list.ListOfMeasurementCategory
 import cz.tomasjanicek.bp.ui.screens.medicine.addEdit.AddEditMedicineScreen
 import cz.tomasjanicek.bp.ui.screens.medicine.list.MedicineListScreen
+import cz.tomasjanicek.bp.ui.screens.settings.SettingsScreen
 import cz.tomasjanicek.bp.ui.screens.splash.SplashScreen
 import cz.tomasjanicek.bp.ui.screens.stats.StatsScreen
 import cz.tomasjanicek.bp.ui.screens.user.UserScreen
@@ -287,6 +288,9 @@ fun NavGraph(
         }
         composable(Destination.UserScreen.route) {
             UserScreen(navigationRouter = navigationRouter)
+        }
+        composable(Destination.SettingsScreen.route) {
+            SettingsScreen(navigationRouter = navigationRouter)
         }
     }
 }

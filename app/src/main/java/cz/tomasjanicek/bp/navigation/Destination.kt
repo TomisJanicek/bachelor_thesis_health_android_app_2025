@@ -43,4 +43,5 @@ sealed class Destination(val route: String) {
     object SplashScreen : Destination("splash_screen")
     object LoginScreen : Destination("login_screen")
     object UserScreen : Destination("user_screen")
+    object SettingsScreen : Destination("settings_screen")
 }

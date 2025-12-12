@@ -137,4 +137,7 @@ class NavigationRouterImpl(private val navController: NavController): INavigatio
     override fun navigateToUserScreen() {
         navController.navigate(Destination.UserScreen.route)
     }
+    override fun navigateToSettingsScreen() {
+        navController.navigate(Destination.SettingsScreen.route)
+    }
 }

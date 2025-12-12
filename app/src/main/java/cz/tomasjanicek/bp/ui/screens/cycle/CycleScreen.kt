@@ -48,12 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import cz.tomasjanicek.bp.navigation.INavigationRouter
-import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
+import cz.tomasjanicek.bp.ui.elements.bottomBar.CustomBottomBar
 import cz.tomasjanicek.bp.ui.screens.cycle.components.CalendarView
-import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
-import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.ui.theme.TagPurple
 import kotlinx.coroutines.delay
 import java.time.format.TextStyle

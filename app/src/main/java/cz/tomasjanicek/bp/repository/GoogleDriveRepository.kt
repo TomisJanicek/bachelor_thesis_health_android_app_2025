@@ -11,24 +11,27 @@ import com.google.api.services.drive.DriveScopes
 import com.google.gson.Gson
 import cz.tomasjanicek.bp.database.AppDatabase
 import cz.tomasjanicek.bp.database.DatabaseCleaner
+import cz.tomasjanicek.bp.model.Doctor
 import cz.tomasjanicek.bp.model.backupData.BackupData
+import cz.tomasjanicek.bp.model.data.DoctorData
+import cz.tomasjanicek.bp.model.data.mergeDoctors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Collections
 import javax.inject.Inject
+import kotlin.collections.isNotEmpty
 
 class GoogleDriveRepository @Inject constructor(
     private val context: Context,
     private val database: AppDatabase,
-    private val gson: Gson, // Injectujeme Gson (musí být v DI)
+    private val gson: Gson,
     private val databaseCleaner: DatabaseCleaner
 ) {
 
     companion object {
         private const val BACKUP_FILE_NAME = "health_app_backup_v1.json"
-        // Použijeme 'appDataFolder', aby soubor nebyl vidět běžně na disku a uživatel ho nesmazal
         private const val BACKUP_FOLDER = "appDataFolder"
     }
 
@@ -133,23 +136,7 @@ class GoogleDriveRepository @Inject constructor(
             // 3. Deserializace
             val backupData = gson.fromJson(jsonContent, BackupData::class.java)
 
-            // 4. Obnova databáze (v transakci)
-            database.runInTransaction {
-                // A) Smazat všechna lokální data
-                database.clearAllTables()
-                // Pozor: clearAllTables je drastické, ale nejbezpečnější pro prevenci duplicit ID.
-
-                // B) Vložit data ze zálohy
-                // Musíme použít runBlocking nebo volat DAO metody, které nejsou suspend uvnitř runInTransaction,
-                // ale protože jsme v suspend funkci v IO vlákně, můžeme volat suspend DAO metody "normálně"
-                // pokud DAO podporuje vkládání seznamů.
-
-                // Poznámka: Uvnitř runInTransaction nemůžeme volat suspend funkce přímo jednoduše.
-                // Proto je lepší udělat logiku smazání a vložení sekvenčně v IO vlákně, ale s rizikem selhání v polovině.
-                // IDEÁLNÍ ŘEŠENÍ: DAO metody pro insertAll (které máš) jsou suspend.
-            }
-
-            // Alternativní bezpečnější vkládání (protože runInTransaction vs suspend je tricky):
+            // 4. Obnova databáze
             repopulateDatabase(backupData)
 
             return@withContext Result.success(true)
@@ -162,17 +149,22 @@ class GoogleDriveRepository @Inject constructor(
 
     // Pomocná metoda pro vkládání (musí běžet v coroutine, protože DAO jsou suspend)
     private suspend fun repopulateDatabase(data: BackupData) {
+        // Použijeme cleaner pro bezpečné vymazání (včetně room internal tables)
         databaseCleaner.clearAllData()
 
-        // Zjednodušení: Použijeme clearAllTables, ale musíme to udělat mimo transakci Roomu, pokud vkládáme přes suspend.
+        // Znovu promažeme, protože clearAllData vkládá defaultní doktory,
+        // ale my chceme vložit "sloučené" doktory z backupu + nové defaulty.
         database.clearAllTables()
+
+        // --- SLOUČENÍ DOKTORŮ ---
+        val mergedDoctors = mergeDoctors(data.doctors, DoctorData.defaultDoctors)
 
         // Vložení dat (pořadí je důležité kvůli cizím klíčům!)
 
         // 1. Nezávislé entity
-        if (data.doctors.isNotEmpty()) database.doctorDao().insertAll(data.doctors)
+        if (mergedDoctors.isNotEmpty()) database.doctorDao().insertAll(mergedDoctors)
+
         if (data.medicines.isNotEmpty()) {
-            // Medicines vkládáme po jedné, nebo přidáme insertList do DAO
             data.medicines.forEach { database.medicineDao().saveMedicine(it) }
         }
         if (data.cycleRecords.isNotEmpty()) {

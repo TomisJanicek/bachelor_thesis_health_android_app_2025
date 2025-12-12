@@ -10,7 +10,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
@@ -49,25 +47,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cz.tomasjanicek.bp.model.MeasurementCategory
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.ChartPeriod
 import cz.tomasjanicek.bp.ui.elements.ChartPoint
-import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
+import cz.tomasjanicek.bp.ui.elements.bottomBar.CustomBottomBar
 import cz.tomasjanicek.bp.ui.elements.CustomDatePickerDialog
 import cz.tomasjanicek.bp.ui.elements.LineChart
 import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
-import cz.tomasjanicek.bp.ui.theme.MyWhite
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import android.content.Intent // <-- PŘIDAT IMPORT
-import androidx.activity.compose.rememberLauncherForActivityResult // <-- PŘIDAT IMPORT
-import androidx.compose.animation.AnimatedVisibility
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
@@ -110,14 +103,13 @@ fun StatsScreen(
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    // Použij primární barvu z tvého tématu (která je MyGreen)
-                    containerColor = MyWhite,
-                    scrolledContainerColor = MyWhite,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
 
                     // Barva pro nadpis a ikony
-                    titleContentColor = MyBlack,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 title = {
                     Text(
@@ -166,13 +158,13 @@ fun StatsScreen(
                     contentColor = MyBlack
                 )
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(MyWhite)
         ) {
             FilterSection(
                 state = state,
@@ -308,7 +300,7 @@ private fun CategorySelector(
             Text(
                 "Nemáte vytvořené žádné kategorie měření.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MyBlack
             )
         } else {
             FlowRow(
@@ -326,7 +318,9 @@ private fun CategorySelector(
                         } else null,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MyGreen,
-                            selectedLabelColor = MyBlack
+                            selectedLabelColor = MyBlack,
+                            disabledContainerColor = MaterialTheme.colorScheme.background,
+                            disabledLabelColor = MaterialTheme.colorScheme.onBackground
                         )
                     )
                 }
@@ -429,7 +423,7 @@ fun ChartCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = MyWhite)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.padding(vertical = 16.dp)) {
             // Název celé kategorie
@@ -444,7 +438,8 @@ fun ChartCard(
             if (chartData.categoryWithFields.fields.isEmpty()) {
                 Text(
                     "V této kategorii nejsou definovány žádné měřitelné parametry.",
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 return@Column // Ukončíme Column
             }
@@ -469,7 +464,8 @@ fun ChartCard(
                     text = field.label,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(Modifier.height(8.dp))
 
@@ -511,13 +507,13 @@ private fun EmptyStateStats(hasAnyCategory: Boolean, modifier: Modifier = Modifi
             text = if (hasAnyCategory) "Vyberte filtry pro zobrazení statistik" else "Nejprve vytvořte kategorie měření",
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            color = MyBlack
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = if (hasAnyCategory) "Zvolte alespoň jednu kategorii měření, pro kterou chcete zobrazit graf." else "Statistiky lze zobrazit až poté, co budete mít definované vlastní kategorie a v nich nějaká data.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MyBlack,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
     }

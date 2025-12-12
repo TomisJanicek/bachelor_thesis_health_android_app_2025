@@ -38,7 +38,7 @@ fun Section(
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp),
             fontWeight = FontWeight.Medium,
-            color = MyBlack
+            color = MaterialTheme.colorScheme.onBackground
         )
         content()
     }

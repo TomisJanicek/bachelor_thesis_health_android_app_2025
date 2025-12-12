@@ -51,20 +51,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.tomasjanicek.bp.navigation.INavigationRouter
-import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
+import cz.tomasjanicek.bp.ui.elements.bottomBar.CustomBottomBar
 import cz.tomasjanicek.bp.ui.elements.CustomExaminationRow
 import cz.tomasjanicek.bp.ui.theme.MyBlack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.ui.Alignment
-import cz.tomasjanicek.bp.model.ExaminationStatus // Importuj tvůj enum
 import cz.tomasjanicek.bp.model.ExaminationWithDoctor
 import cz.tomasjanicek.bp.model.Injection
 import cz.tomasjanicek.bp.ui.elements.CustomInjectionRow
 import cz.tomasjanicek.bp.ui.elements.EmptyStateScreen
 //import cz.tomasjanicek.bp.ui.elements.StatusSelector
-import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationUIState
-import cz.tomasjanicek.bp.ui.screens.examination.list.ListOfExaminationViewModel
 import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 
@@ -100,7 +97,7 @@ fun ListOfExaminationScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Navigace do nastavení */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToSettingsScreen() }) {
                         Icon(imageVector = Icons.Filled.Settings, contentDescription = "Nastavení")
                     }
                 },

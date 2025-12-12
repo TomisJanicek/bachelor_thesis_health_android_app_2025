@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cz.tomasjanicek.bp.model.Medicine
 import cz.tomasjanicek.bp.model.MedicineReminder
+import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import java.time.Instant
 import java.time.ZoneId
@@ -44,7 +45,6 @@ fun MedicineReminderItem(
     }
 
     val textDecoration = if (isCompleted) TextDecoration.LineThrough else null
-    val textColor = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
 
     Card(
         modifier = modifier
@@ -64,7 +64,7 @@ fun MedicineReminderItem(
                 onCheckedChange = onCheckedChange,
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.secondary,
-                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    uncheckedColor = MyBlack
                 )
             )
             Spacer(Modifier.width(8.dp))
@@ -74,7 +74,7 @@ fun MedicineReminderItem(
                         text = medicine.name,
                         style = MaterialTheme.typography.titleMedium.copy(
                             textDecoration = textDecoration,
-                            color = textColor
+                            color = MyBlack
                         ),
                         fontWeight = FontWeight.Bold
                     )
@@ -82,7 +82,7 @@ fun MedicineReminderItem(
                         text = "Dávka: ${medicine.dosage.toInt()} ${medicine.unit.label}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             textDecoration = textDecoration,
-                            color = textColor
+                            color = MyBlack
                         )
                     )
                     if (!medicine.note.isNullOrBlank()) {
@@ -90,13 +90,13 @@ fun MedicineReminderItem(
                             text = "Pozn.: ${medicine.note}",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 textDecoration = textDecoration,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MyBlack
                             ),
                             fontSize = 12.sp
                         )
                     }
                 } else {
-                    Text("Načítání léku...", style = MaterialTheme.typography.titleMedium)
+                    Text("Načítání léku...", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
             Spacer(Modifier.width(16.dp))
@@ -105,7 +105,7 @@ fun MedicineReminderItem(
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Light,
                     textDecoration = textDecoration,
-                    color = textColor
+                    color = MyBlack
                 ),
             )
         }

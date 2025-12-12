@@ -1,5 +1,6 @@
 package cz.tomasjanicek.bp.ui.screens.medicine.addEdit
 
+import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -30,6 +31,7 @@ import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.CustomDatePickerDialog
 import cz.tomasjanicek.bp.ui.elements.CustomTimePickerDialog
 import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyRed
 import cz.tomasjanicek.bp.ui.theme.MyWhite
@@ -157,7 +159,7 @@ fun AddEditMedicineScreen(
                 title = {
                     Text(
                         if (state.isEditing) "Upravit lék" else "Nový lék",
-                        color = MyBlack
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
@@ -165,18 +167,18 @@ fun AddEditMedicineScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Zpět",
-                            tint = MyBlack
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MyWhite)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MyWhite)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(WindowInsets.navigationBars.asPaddingValues())
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -190,10 +192,11 @@ fun AddEditMedicineScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("Uložit")
+                    Text("Uložit", color = MyBlack)
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -203,7 +206,6 @@ fun AddEditMedicineScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MyWhite)
                     .padding(innerPadding),
                 contentPadding = PaddingValues(
                     start = 16.dp,
@@ -222,7 +224,14 @@ fun AddEditMedicineScreen(
                         label = { Text("Název léku*") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        isError = state.name.isBlank() && state.hasAttemptedSave
+                        isError = state.name.isBlank() && state.hasAttemptedSave,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                            focusedTextColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
                 item {
@@ -243,7 +252,14 @@ fun AddEditMedicineScreen(
                             modifier = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             isError = (state.dosage.toDoubleOrNull()
-                                ?: 0.0) <= 0.0 && state.hasAttemptedSave
+                                ?: 0.0) <= 0.0 && state.hasAttemptedSave,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                                focusedTextColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                         Spacer(Modifier.width(8.dp))
                         var expanded by remember { mutableStateOf(false) }
@@ -258,7 +274,22 @@ fun AddEditMedicineScreen(
                                 readOnly = true,
                                 label = { Text("Jednotka") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                                modifier = Modifier.menuAnchor()
+                                modifier = Modifier.menuAnchor(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    // --- Normální stav (není vybráno, není chyba) ---
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
+                                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
+
+                                    // --- Stav, když je pole vybráno (kliknuto) ---
+                                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                                    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+                                )
                             )
                             ExposedDropdownMenu(
                                 expanded = expanded,
@@ -286,7 +317,14 @@ fun AddEditMedicineScreen(
                         value = state.note,
                         onValueChange = { viewModel.onAction(AddEditMedicineAction.OnNoteChanged(it)) },
                         label = { Text("Poznámka (např. 'po jídle')") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                            focusedTextColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        )
                     )
                 }
 
@@ -375,7 +413,7 @@ private fun FormSection(title: String) {
         text = title,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        color = MyBlack,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
     )
 }
@@ -388,8 +426,16 @@ private fun RegularitySwitch(isRegular: Boolean, onCheckedChange: (Boolean) -> U
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
-        Text("Pravidelné užívání", modifier = Modifier.weight(1f), color = MyBlack)
-        Switch(checked = isRegular, onCheckedChange = onCheckedChange)
+        Text("Pravidelné užívání", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onBackground)
+        Switch(
+            checked = isRegular,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MyBlack,
+                checkedTrackColor = MyPink,
+                uncheckedThumbColor = MyBlack,
+                uncheckedTrackColor = MyGreen
+            ))
     }
 }
 
@@ -405,7 +451,7 @@ private fun DaySelector(selectedDays: Set<DayOfWeek>, onDayClick: (DayOfWeek) ->
             FilterChip(
                 selected = isSelected,
                 onClick = { onDayClick(day) },
-                label = { Text(day.getDisplayName(TextStyle.SHORT, Locale("cs", "CZ"))) },
+                label = { Text(day.getDisplayName(TextStyle.SHORT, Locale("cs", "CZ")), color = MaterialTheme.colorScheme.onBackground) },
                 modifier = Modifier.height(36.dp),
                 colors = FilterChipDefaults.filterChipColors(
                     disabledContainerColor = MyWhite,
@@ -431,7 +477,7 @@ private fun TimeSelector(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isError) MaterialTheme.colorScheme.error else MyBlack
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
         )
         FlowRow(
             modifier = Modifier
@@ -451,13 +497,14 @@ private fun TimeSelector(
                             contentDescription = "Odebrat čas",
                             modifier = Modifier
                                 .size(InputChipDefaults.IconSize)
-                                .clickable { onRemoveTimeClick(time) }
+                                .clickable { onRemoveTimeClick(time) },
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 )
             }
             IconButton(onClick = onAddTimeClick) {
-                Icon(Icons.Default.Add, contentDescription = "Přidat čas", tint = MyBlack)
+                Icon(Icons.Default.Add, contentDescription = "Přidat čas", tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -471,7 +518,7 @@ private fun DateChip(label: String, dateMillis: Long, onClick: () -> Unit) {
         .format(formatter)
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label, modifier = Modifier.padding(end = 8.dp), color = MyBlack)
+        Text(label, modifier = Modifier.padding(end = 8.dp), color = MaterialTheme.colorScheme.onBackground)
         InputChip(
             selected = true,
             onClick = onClick,
@@ -501,7 +548,7 @@ private fun DateTimeSelector(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isError) MaterialTheme.colorScheme.error else MyBlack
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
         )
         FlowRow(
             modifier = Modifier
@@ -517,20 +564,21 @@ private fun DateTimeSelector(
                 InputChip(
                     selected = false,
                     onClick = { /* Úprava termínu */ },
-                    label = { Text(dateTimeText, color = MyBlack) },
+                    label = { Text(dateTimeText, color = MaterialTheme.colorScheme.onBackground) },
                     trailingIcon = {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Odebrat termín",
                             modifier = Modifier
                                 .size(InputChipDefaults.IconSize)
-                                .clickable { onRemoveDateTimeClick(dateTimeMillis) }
+                                .clickable { onRemoveDateTimeClick(dateTimeMillis) },
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 )
             }
             IconButton(onClick = onAddDateTimeClick) {
-                Icon(Icons.Default.Add, contentDescription = "Přidat termín", tint = MyBlack)
+                Icon(Icons.Default.Add, contentDescription = "Přidat termín", tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -561,9 +609,9 @@ fun EndingConditionSelector(
                         activeContentColor = MyBlack, // Barva textu na aktivním
                         activeBorderColor = MyBlack,
 
-                        inactiveContainerColor = MyWhite,
-                        inactiveContentColor = MyBlack,
-                        inactiveBorderColor = MyBlack
+                        inactiveContainerColor = MaterialTheme.colorScheme.background,
+                        inactiveContentColor = MaterialTheme.colorScheme.onBackground,
+                        inactiveBorderColor = MaterialTheme.colorScheme.onBackground
                     )
                 ) {
                     Text(type.label)
@@ -588,7 +636,14 @@ fun EndingConditionSelector(
                     label = { Text("Počet dávek*") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    isError = (state.doseCount.toIntOrNull() ?: 0) <= 0 && state.hasAttemptedSave
+                    isError = (state.doseCount.toIntOrNull() ?: 0) <= 0 && state.hasAttemptedSave,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    )
                 )
             }
 

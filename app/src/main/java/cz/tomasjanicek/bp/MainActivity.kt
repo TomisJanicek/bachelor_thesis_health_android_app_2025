@@ -6,25 +6,38 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import cz.tomasjanicek.bp.auth.AuthRepository
 import cz.tomasjanicek.bp.navigation.Destination
 import cz.tomasjanicek.bp.navigation.NavGraph
+import cz.tomasjanicek.bp.ui.screens.settings.SettingsManager
+import cz.tomasjanicek.bp.ui.theme.AppTheme
 import cz.tomasjanicek.bp.ui.theme.BpTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var settingsManager: SettingsManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
 
-            // --- ZAČÁTEK NOVÉHO KÓDU ---
+            val appTheme by settingsManager.themeFlow.collectAsState()
+
+            // 2. Vypočítáme, jestli má být tma
+            val isDarkTheme = when (appTheme) {
+                AppTheme.LIGHT -> false
+                AppTheme.DARK -> true
+                AppTheme.SYSTEM -> isSystemInDarkTheme()
+            }
 
             // 1. Získáme si ovladač pro systémové UI (lišty)
             val systemUiController = rememberSystemUiController()
@@ -52,7 +65,9 @@ class MainActivity : ComponentActivity() {
 
                 )
             }
-            BpTheme {
+            BpTheme(
+                darkTheme = isDarkTheme
+            ) {
                 NavGraph(
                     startDestination = Destination.SplashScreen.route
                 )

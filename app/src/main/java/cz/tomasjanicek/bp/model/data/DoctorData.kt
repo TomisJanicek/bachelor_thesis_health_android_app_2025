@@ -6,7 +6,7 @@ object DoctorData {
     val defaultDoctors = listOf(
         Doctor(
             specialization = "Praktický lékař",
-            image = "doctor_general" // název obrázku v drawable (bez .png/.xml)
+            image = "prakticky_lekar" // název obrázku v drawable (bez .png/.xml)
         ),
         Doctor(
             specialization = "Zubař",
@@ -15,6 +15,10 @@ object DoctorData {
         Doctor(
             specialization = "Gynekolog",
             image = "doctor_gyn"
+        ),
+        Doctor(
+            specialization = "Plicní (Pneumo...)",
+            image = "doctor_pneumo"
         ),
         Doctor(
             specialization = "Oční (Oftalmologie)",
@@ -47,6 +51,26 @@ object DoctorData {
         Doctor(
             specialization = "Psychiatrie",
             image = "doctor_psych"
+        ),
+        Doctor(
+            specialization = "Revmatologie",
+            image = "doctor_revma"
+        ),
+        Doctor(
+            specialization = "Dětský lékař",
+            image = "doctor_child"
+        ),
+        Doctor(
+            specialization = "Nutriční lékař",
+            image = "doctor_nutrition"
+        ),
+        Doctor(
+            specialization = "Onkologie",
+            image = "doctor_onkology"
+        ),
+        Doctor(
+            specialization = "Logopedie",
+            image = "doctor_logopedy"
         ),
         Doctor(
             specialization = "Jiné",

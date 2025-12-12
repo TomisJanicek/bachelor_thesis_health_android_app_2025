@@ -50,4 +50,5 @@ interface INavigationRouter {
     fun navigateToLogin()
     fun navigateToHomeFromLogin()
     fun navigateToUserScreen()
+    fun navigateToSettingsScreen()
 }

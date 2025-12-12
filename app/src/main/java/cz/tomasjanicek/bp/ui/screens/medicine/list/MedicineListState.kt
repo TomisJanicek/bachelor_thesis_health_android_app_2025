@@ -16,5 +16,6 @@ data class MedicineListState(
     val selectedDate: LocalDate = LocalDate.now(), // Přidáno
     val todaysPlanned: List<MedicineReminder> = emptyList(),
     val todaysCompleted: List<MedicineReminder> = emptyList(),
-    val medicineDetails: Map<Long, Medicine> = emptyMap()
+    val medicineDetails: Map<Long, Medicine> = emptyMap(),
+    val isLoading: Boolean = true
 )

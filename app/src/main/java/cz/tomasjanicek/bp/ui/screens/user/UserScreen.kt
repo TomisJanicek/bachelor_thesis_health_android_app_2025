@@ -84,18 +84,18 @@ fun UserScreen(
     }
 
     Scaffold(
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Můj profil", fontWeight = FontWeight.SemiBold) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MyWhite,
-                    titleContentColor = MyBlack,
-                    navigationIconContentColor = MyBlack
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navigationRouter.returBack() }) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Zpět")
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Zpět", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             )
@@ -118,7 +118,7 @@ fun UserScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.Start
                     ) {
                         // Avatar
                         if (isGuest) {
@@ -156,7 +156,7 @@ fun UserScreen(
                             text = if (isGuest) "Lokální účet" else (user?.displayName ?: "Uživatel"),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MyBlack
+                            color = MaterialTheme.colorScheme.onBackground
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -164,7 +164,7 @@ fun UserScreen(
                         Text(
                             text = if (isGuest) "Režim hosta" else (user?.email ?: ""),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
