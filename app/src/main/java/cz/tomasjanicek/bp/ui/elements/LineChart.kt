@@ -149,10 +149,10 @@ fun PeriodSelector(
                 colors = SegmentedButtonDefaults.colors(
                     activeContainerColor = colors.secondary,
                     activeContentColor = MyBlack,
-                    activeBorderColor = MyBlack,
-                    inactiveContainerColor = MyWhite,
-                    inactiveContentColor = MyBlack,
-                    inactiveBorderColor = MyBlack
+                    activeBorderColor = MaterialTheme.colorScheme.onBackground,
+                    inactiveContainerColor = MaterialTheme.colorScheme.background,
+                    inactiveContentColor = MaterialTheme.colorScheme.onBackground,
+                    inactiveBorderColor = MaterialTheme.colorScheme.onBackground
                 )
             ) { Text(period.label) }
         }

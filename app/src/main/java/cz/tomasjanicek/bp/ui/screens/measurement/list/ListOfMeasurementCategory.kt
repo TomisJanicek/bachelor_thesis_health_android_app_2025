@@ -1,5 +1,6 @@
 package cz.tomasjanicek.bp.ui.screens.measurement.list
 
+import android.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import cz.tomasjanicek.bp.model.MeasurementCategoryWithFields
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
+import cz.tomasjanicek.bp.ui.elements.EmptyStateScreen
 import cz.tomasjanicek.bp.ui.theme.MyBlack
 import cz.tomasjanicek.bp.ui.theme.MyGreen
 import cz.tomasjanicek.bp.ui.theme.MyWhite
@@ -56,15 +58,15 @@ fun ListOfMeasurementCategory(
 
 
     Scaffold(
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MediumTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MyWhite,
-                    scrolledContainerColor = MyWhite,
-                    titleContentColor = MyBlack,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 title = {
                     Text(
@@ -74,10 +76,11 @@ fun ListOfMeasurementCategory(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Profil uživatele (nebo jiná akce) */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToUserScreen() }) {
                         Icon(
                             imageVector = Icons.Filled.Person,
-                            contentDescription = "Profil uživatele"
+                            contentDescription = "Profil uživatele",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -85,7 +88,8 @@ fun ListOfMeasurementCategory(
                     IconButton(onClick = { throw RuntimeException("Test Crash")}) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
-                            contentDescription = "Nastavení"
+                            contentDescription = "Nastavení",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -101,7 +105,6 @@ fun ListOfMeasurementCategory(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // TODO: navigace na AddEditCategoryScreen (nová kategorie)
                     navigationRouter.navigateToAddEditMeasurementCategory(null)
                 },
                 containerColor = MaterialTheme.colorScheme.secondary,
@@ -112,7 +115,7 @@ fun ListOfMeasurementCategory(
                     contentDescription = "add"
                 )
             }
-        }
+        },
     ) { innerPadding ->
         when (state) {
             ListOfMeasurementUIState.Loading -> {
@@ -129,21 +132,38 @@ fun ListOfMeasurementCategory(
 
             is ListOfMeasurementUIState.Content -> {
                 val content = state as ListOfMeasurementUIState.Content
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(content.categories) { item ->
-                        MeasurementCategoryItem(
-                            categoryWithFields = item,
-                            onClick = {
-                                navigationRouter.navigateToMeasurementCategoryDetail(item.category.id)
-                            }
-                        )
+
+                // --- ZDE JE ZMĚNA ---
+                if (content.categories.isEmpty()) {
+                    // 1. Pokud je seznam prázdný -> Empty State
+                    EmptyStateScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        title = "Zatím žádná měření",
+                        description = "Vytvořte si vlastní kategorie (např. Tlak, Váha, Cukr) a sledujte své zdraví v čase.",
+                        buttonText = "Vytvořit kategorii", // Tlačítko uprostřed jako výzva k akci
+                        onButtonClick = {
+                            navigationRouter.navigateToAddEditMeasurementCategory(null)
+                        }
+                    )
+                } else {
+                    // 2. Pokud data jsou -> LazyColumn
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(content.categories) { item ->
+                            MeasurementCategoryItem(
+                                categoryWithFields = item,
+                                onClick = {
+                                    navigationRouter.navigateToMeasurementCategoryDetail(item.category.id)
+                                }
+                            )
+                        }
+                        // Spacer, aby obsah nebyl schovaný pod FABem
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
-                    item { Spacer(modifier = Modifier.height(64.dp)) }
                 }
             }
 
@@ -155,7 +175,7 @@ fun ListOfMeasurementCategory(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Nastala chyba při načítání měření.")
+                    Text("Nastala chyba při načítání měření.", color = MaterialTheme.colorScheme.error)
                 }
             }
         }

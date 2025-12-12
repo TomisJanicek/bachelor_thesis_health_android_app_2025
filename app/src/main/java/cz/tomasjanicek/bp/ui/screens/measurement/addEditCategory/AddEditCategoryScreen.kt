@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +46,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
@@ -101,20 +103,20 @@ fun AddEditCategoryScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MyWhite, titleContentColor = MyBlack),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background, titleContentColor = MaterialTheme.colorScheme.onBackground),
                 title = { Text(if (id == null) "Nová kategorie" else "Upravit kategorii") },
                 navigationIcon = {
                     IconButton(onClick = { navigationRouter.returBack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBackIosNew, contentDescription = "Zpět", tint = MyBlack)
+                        Icon(imageVector = Icons.Default.ArrowBackIosNew, contentDescription = "Zpět", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
                     if (data?.category?.id != 0L) {
                         IconButton(onClick = { viewModel.deleteCategory() }) {
-                            Icon(imageVector = Icons.Outlined.Delete, contentDescription = "Odstranit kategorii")
+                            Icon(imageVector = Icons.Outlined.Delete, contentDescription = "Odstranit kategorii", tint = MaterialTheme.colorScheme.onBackground)
                         }
                     }
                 }
@@ -124,7 +126,7 @@ fun AddEditCategoryScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MyWhite)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(WindowInsets.navigationBars.asPaddingValues())
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -133,7 +135,7 @@ fun AddEditCategoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = data != null
                 ) {
-                    Text("Uložit kategorii")
+                    Text("Uložit kategorii", color = MyBlack)
                 }
             }
         }
@@ -184,7 +186,7 @@ private fun AddEditCategoryContent(
         // --- SEKCIE 1: ZÁKLADNÍ INFORMACE ---
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Základní informace", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(text = "Základní informace", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
@@ -193,7 +195,14 @@ private fun AddEditCategoryContent(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Název kategorie*") },
                 isError = data.nameError != null,
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
             if (data.nameError != null) {
                 Text(
@@ -211,7 +220,14 @@ private fun AddEditCategoryContent(
                 onValueChange = { actions.onDescriptionChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Popis (nepovinné)") },
-                minLines = 2
+                minLines = 2,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
 
@@ -228,10 +244,10 @@ private fun AddEditCategoryContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Parametry", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                OutlinedButton(onClick = { actions.onParameterDialogOpened(null) }) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-                    Text("Přidat")
+                Text(text = "Parametry", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
+                OutlinedButton(onClick = { actions.onParameterDialogOpened(null) }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground, )) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.padding(end = 8.dp), tint = MaterialTheme.colorScheme.onBackground)
+                    Text("Přidat", color = MaterialTheme.colorScheme.onBackground)
                 }
             }
             if (data.fieldsError != null) {
@@ -245,7 +261,7 @@ private fun AddEditCategoryContent(
                 Text(
                     text = "Kategorie musí mít alespoň jeden parametr.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }

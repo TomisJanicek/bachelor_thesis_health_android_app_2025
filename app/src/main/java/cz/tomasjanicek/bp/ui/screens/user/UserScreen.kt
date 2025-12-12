@@ -2,11 +2,14 @@ package cz.tomasjanicek.bp.ui.screens.user
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,14 +18,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +59,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.google.api.services.drive.DriveScopes
 import cz.tomasjanicek.bp.navigation.INavigationRouter
+import cz.tomasjanicek.bp.ui.theme.MyBlack
+import cz.tomasjanicek.bp.ui.theme.MyGreen
+import cz.tomasjanicek.bp.ui.theme.MyWhite
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserScreen(
     navigationRouter: INavigationRouter,
@@ -52,140 +74,239 @@ fun UserScreen(
     val isGuest by viewModel.isGuest.collectAsState()
     val context = LocalContext.current
 
-    // --- MAGIE PRO ZÍSKÁNÍ OPRÁVNĚNÍ K DISKU ---
-    // Toto zachytí výsledek, až uživatel odklikne "Povolit přístup k Disku"
+    // Launcher pro Google Drive oprávnění
     val googlePermissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // Ať už to dopadlo jakkoliv (OK nebo Zrušeno), spustíme proces odhlášení.
-        // Pokud dal OK, repository uvnitř signOut() bude mít oprávnění a záloha projde.
-        // Pokud to zrušil, záloha selže, ale odhlášení proběhne (díky naší záchranné brzdě).
         viewModel.onSignOutClick {
             navigationRouter.navigateToLogin()
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // 1. Profilová fotka
-        if (isGuest) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-                    .border(2.dp, MaterialTheme.colorScheme.secondary, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Guest",
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-            }
-        } else {
-            AsyncImage(
-                model = user?.photoUrl,
-                contentDescription = "Profilová fotka",
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 2. Jméno
-        if (isGuest) {
-            Text(
-                text = "Lokální účet (Host)",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-        } else {
-            Text(
-                text = user?.displayName ?: "Uživatel",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 3. Info texty
-        if (isGuest) {
-            Text(
-                text = "Data jsou uložena pouze v tomto zařízení.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray
-            )
-            Text(
-                text = "Ukončením režimu hosta o data přijdete!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                fontWeight = FontWeight.Bold
-            )
-        } else {
-            Text(
-                text = user?.email ?: "",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray
-            )
-            Text(
-                text = "Při odhlášení se pokusíme data zálohovat.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(48.dp))
-
-        // 4. Tlačítko
-        Button(
-            onClick = {
-                if (isGuest) {
-                    // Host nepotřebuje zálohovat na Disk -> rovnou mažeme
-                    viewModel.onSignOutClick {
-                        navigationRouter.navigateToLogin()
+    Scaffold(
+        containerColor = MyWhite,
+        topBar = {
+            TopAppBar(
+                title = { Text("Můj profil", fontWeight = FontWeight.SemiBold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MyWhite,
+                    titleContentColor = MyBlack,
+                    navigationIconContentColor = MyBlack
+                ),
+                navigationIcon = {
+                    IconButton(onClick = { navigationRouter.returBack() }) {
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Zpět")
                     }
-                } else {
-                    // --- UŽIVATEL S GOOGLE ÚČTEM ---
-                    // Než ho odhlásíme, musíme si vyžádat oprávnění pro Drive (pokud ho ještě nemá).
-                    // Spustíme Google Sign-In intent s DRIVE scope.
-                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestEmail()
-                        .requestScopes(Scope(DriveScopes.DRIVE_APPDATA)) // <-- Chceme Disk
-                        .build()
-                    val client = GoogleSignIn.getClient(context, gso)
-
-                    // Spustíme intent -> výsledek zachytí 'googlePermissionsLauncher' nahoře
-                    googlePermissionsLauncher.launch(client.signInIntent)
                 }
-            },
-            enabled = !isSigningOut,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (isSigningOut) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // --- 1. PROFILOVÁ KARTA ---
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Avatar
+                        if (isGuest) {
+                            Box(
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.LightGray.copy(alpha = 0.2f))
+                                    .border(2.dp, Color.Gray, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Guest",
+                                    modifier = Modifier.size(50.dp),
+                                    tint = Color.Gray
+                                )
+                            }
+                        } else {
+                            AsyncImage(
+                                model = user?.photoUrl,
+                                contentDescription = "Profilová fotka",
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(CircleShape)
+                                    .border(2.dp, MyGreen, CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Jméno a email
+                        Text(
+                            text = if (isGuest) "Lokální účet" else (user?.displayName ?: "Uživatel"),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MyBlack
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = if (isGuest) "Režim hosta" else (user?.email ?: ""),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // --- 2. INFORMACE O DATECH ---
+                Text(
+                    text = "Stav dat",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.Start)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Zálohuji a odhlašuji...")
-            } else {
-                Text(if (isGuest) "Ukončit režim a smazat data" else "Odhlásit se")
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isGuest) Color(0xFFFFF3E0) else Color(0xFFE8F5E9) // Oranžová vs Zelená
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isGuest) Icons.Default.PhoneAndroid else Icons.Default.CloudDone,
+                            contentDescription = null,
+                            tint = if (isGuest) Color(0xFFEF6C00) else MyGreen,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = if (isGuest) "Uloženo v telefonu" else "Synchronizace aktivní",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MyBlack
+                            )
+                            Text(
+                                text = if (isGuest) "Data nejsou zálohována" else "Data se zálohují na Google Disk",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MyBlack.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                // --- 3. VAROVÁNÍ PRO HOSTA ---
+                AnimatedVisibility(visible = isGuest) {
+                    Column {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WarningAmber,
+                                    contentDescription = "Varování",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Pozor: Odhlášením z režimu hosta dojde k trvalému smazání všech dat!",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f)) // Tlačítko odsuneme dolů
+
+                // --- 4. TLAČÍTKO ODHLÁŠENÍ ---
+                Button(
+                    onClick = {
+                        if (isGuest) {
+                            viewModel.onSignOutClick { navigationRouter.navigateToLogin() }
+                        } else {
+                            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestEmail()
+                                .requestScopes(Scope(DriveScopes.DRIVE_APPDATA))
+                                .build()
+                            val client = GoogleSignIn.getClient(context, gso)
+                            googlePermissionsLauncher.launch(client.signInIntent)
+                        }
+                    },
+                    enabled = !isSigningOut,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Logout, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (isGuest) "Smazat data a ukončit" else "Odhlásit se",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            // --- 5. LOADING OVERLAY ---
+            if (isSigningOut) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        color = MyWhite,
+                        shape = RoundedCornerShape(16.dp),
+                        shadowElevation = 8.dp
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(color = MyGreen)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Probíhá zálohování...",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
             }
         }
     }

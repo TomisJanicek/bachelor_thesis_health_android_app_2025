@@ -69,13 +69,13 @@ fun CustomTimePickerDialog(
                         onClick = onDismiss,
                         colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
                     ) {
-                        Text("Zrušit")
+                        Text("Zrušit", color = MyGreen)
                     }
                     TextButton(
                         onClick = onConfirm,
                         colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
                     ) {
-                        Text("Potvrdit")
+                        Text("Potvrdit", color = MyGreen)
                     }
                 }
             }

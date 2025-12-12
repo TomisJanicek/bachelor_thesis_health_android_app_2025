@@ -20,8 +20,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Card
@@ -37,13 +35,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,7 +58,6 @@ import cz.tomasjanicek.bp.model.Measurement
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.ChartPeriod
 import cz.tomasjanicek.bp.ui.elements.ChartPoint
-import cz.tomasjanicek.bp.ui.elements.CustomBottomBar
 import cz.tomasjanicek.bp.ui.elements.LineChart
 import cz.tomasjanicek.bp.ui.elements.PeriodSelector
 import cz.tomasjanicek.bp.ui.theme.MyBlack
@@ -134,15 +129,15 @@ fun MeasurementCategoryDetailScreen(
 
     Scaffold(
         modifier = Modifier,
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MediumTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MyWhite,
-                    scrolledContainerColor = MyWhite,
-                    titleContentColor = MyBlack,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 title = {
                     val title = when (state) {
@@ -161,20 +156,30 @@ fun MeasurementCategoryDetailScreen(
                         Icon(
                             imageVector = Icons.Filled.ArrowBackIosNew,
                             contentDescription = "Zpět",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 // --- PŘIDANÁ AKCE S OTAZNÍKEM ---
                 actions = {
-                    // Zobrazíme ikonu jen pokud jsou data načtená a je co zobrazit v grafu
                     if (state is MeasurementCategoryDetailUIState.Content && (state as MeasurementCategoryDetailUIState.Content).measurements.isNotEmpty()) {
                         IconButton(onClick = { showHelpDialog = true }) {
                             Icon(
                                 imageVector = Icons.Outlined.HelpOutline,
-                                contentDescription = "Nápověda k grafu"
+                                contentDescription = "Nápověda k grafu",
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
+                    }
+                    IconButton(onClick = {
+                        // Zavoláme router s ID aktuální kategorie
+                        navigationRouter.navigateToAddEditMeasurementCategory(categoryId)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Upravit kategorii",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -198,7 +203,6 @@ fun MeasurementCategoryDetailScreen(
             }
         }
     ) { innerPadding ->
-        // ... zbytek kódu (when(currentState)...) zůstává naprosto stejný ...
         when (val currentState = state) {
             MeasurementCategoryDetailUIState.Loading -> {
                 Column(
@@ -221,7 +225,7 @@ fun MeasurementCategoryDetailScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Kategorii se nepodařilo načíst.")
+                    Text("Kategorii se nepodařilo načíst.", color = MaterialTheme.colorScheme.error)
                 }
             }
 
@@ -236,7 +240,6 @@ fun MeasurementCategoryDetailScreen(
                         .fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // --- NOVÁ SEKCE S GRAFEM ---
                     item {
                         MeasurementChartSection(
                             content = currentState,
@@ -259,12 +262,13 @@ fun MeasurementCategoryDetailScreen(
                             ) {
                                 Text(
                                     "Zatím nemáte žádné záznamy.",
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                                 Text(
                                     "Přidejte své první měření pomocí tlačítka (+)",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
@@ -451,7 +455,7 @@ private fun MeasurementListItem(
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
                     contentDescription = "Rozbalit/Sbalit",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
 

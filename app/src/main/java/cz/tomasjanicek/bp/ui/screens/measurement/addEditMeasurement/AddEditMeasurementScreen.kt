@@ -97,12 +97,12 @@ fun AddEditMeasurementScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = MyWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MyWhite,
-                    titleContentColor = MyBlack
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 title = {
                     Text(data?.category?.name ?: "Měření")
@@ -112,7 +112,7 @@ fun AddEditMeasurementScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
                             contentDescription = "Zpět",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -121,7 +121,8 @@ fun AddEditMeasurementScreen(
                         IconButton(onClick = { viewModel.deleteMeasurement() }) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
-                                contentDescription = "Odstranit měření"
+                                contentDescription = "Odstranit měření",
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -141,7 +142,7 @@ fun AddEditMeasurementScreen(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = data != null
                 ) {
-                    Text("Uložit")
+                    Text("Uložit", color = MyBlack)
                 }
             }
         }
@@ -208,15 +209,16 @@ private fun AddEditMeasurementContent(
                     .clickable { showDatePicker = true },
                 label = { Text("Datum a čas měření") },
                 leadingIcon = {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = "Datum")
+                    Icon(Icons.Default.CalendarMonth, contentDescription = "Datum", tint = MaterialTheme.colorScheme.onBackground)
                 },
                 readOnly = true,
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = MyBlack,
-                    disabledBorderColor = MyBlack,
-                    disabledLeadingIconColor = MyBlack,
-                    disabledLabelColor = MyBlack
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -239,7 +241,14 @@ private fun AddEditMeasurementContent(
                         )
                     },
                     singleLine = true,
-                    isError = fieldUi.error != null
+                    isError = fieldUi.error != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 fieldUi.error?.let {
                     Text(

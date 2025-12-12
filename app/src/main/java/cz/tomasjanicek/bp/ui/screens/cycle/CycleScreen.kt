@@ -87,7 +87,7 @@ fun CycleScreen(
                 ),
                 title = { Text("Sledování cyklu") },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToUserScreen() }) {
                         Icon(Icons.Default.Person, "Profil", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },

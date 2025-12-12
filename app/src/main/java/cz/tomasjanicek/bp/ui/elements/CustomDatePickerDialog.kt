@@ -28,7 +28,7 @@ fun CustomDatePickerDialog(
             TextButton(
                 onClick = onConfirm,
                 colors = ButtonDefaults.textButtonColors(contentColor = MyBlack)
-            ) { Text("Vybrat čas") }
+            ) { Text("Pokračvat") }
         },
         dismissButton = {
             TextButton(

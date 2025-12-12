@@ -9,6 +9,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,10 +51,10 @@ fun ParameterEditDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (field.id < 0) "Nový parametr" else "Upravit parametr") },
+        title = { Text(if (field.id < 0) "Nový parametr" else "Upravit parametr", color = MyBlack)},
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Zadejte název a jednotku parametru, který chcete měřit.")
+                Text("Zadejte název a jednotku parametru, který chcete měřit.", color = MyBlack)
 
                 OutlinedTextField(
                     value = label,
@@ -69,10 +70,15 @@ fun ParameterEditDialog(
                         .focusRequester(focusRequester),
                     singleLine = true,
                     // Chyba se teď váže jen k tomuto poli
-                    isError = error != null
+                    isError = error != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedTextColor = MyBlack,
+                        unfocusedBorderColor = MyBlack,
+                        unfocusedLabelColor = MyBlack,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-
-                // !!! POLE PRO INTERNÍ NÁZEV JE PRYČ !!!
 
                 OutlinedTextField(
                     value = unit,
@@ -84,7 +90,14 @@ fun ParameterEditDialog(
                     label = { Text("Jednotka (nepovinné)") },
                     placeholder = { Text("např. 'mmHg'") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedTextColor = MyBlack,
+                        unfocusedBorderColor = MyBlack,
+                        unfocusedLabelColor = MyBlack,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -104,7 +117,14 @@ fun ParameterEditDialog(
                         placeholder = { Text("volitelné") },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedTextColor = MyBlack,
+                            unfocusedBorderColor = MyBlack,
+                            unfocusedLabelColor = MyBlack,
+                            focusedTextColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
 
                     // POLE PRO MAXIMUM
@@ -120,7 +140,14 @@ fun ParameterEditDialog(
                         placeholder = { Text("volitelné") },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedTextColor = MyBlack,
+                            unfocusedBorderColor = MyBlack,
+                            unfocusedLabelColor = MyBlack,
+                            focusedTextColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
 
