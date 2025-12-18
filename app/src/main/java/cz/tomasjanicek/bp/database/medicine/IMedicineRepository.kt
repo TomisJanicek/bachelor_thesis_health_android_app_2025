@@ -14,6 +14,7 @@ interface IMedicineRepository {
 
     fun getTodaysPlannedReminders(): Flow<List<MedicineReminder>>
     fun getTodaysCompletedReminders(): Flow<List<MedicineReminder>>
+
     fun getMedicineById(id: Long): Flow<Medicine?>
 
     suspend fun saveMedicineAndGenerateReminders(medicine: Medicine)

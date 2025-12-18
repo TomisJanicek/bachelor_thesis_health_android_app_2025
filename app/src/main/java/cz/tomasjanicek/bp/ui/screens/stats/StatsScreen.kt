@@ -257,7 +257,7 @@ private fun FilterSection(
             ) {
                 Column(
                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    //verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Divider() // Vizuální oddělovač
                     Spacer(Modifier.height(8.dp))

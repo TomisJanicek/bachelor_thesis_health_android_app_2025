@@ -26,6 +26,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -177,14 +179,15 @@ private fun AddEditMeasurementContent(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // --- OPRAVA ZDE ---
-    val datePickerState = remember(data.measurement.measuredAt) {
-        DatePickerState(
-            // Povinný parametr, který chyběl
-            locale = Locale.getDefault(),
-            initialSelectedDateMillis = data.measurement.measuredAt
-        )
-    }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = data.measurement.measuredAt,
+        yearRange = 1900..Calendar.getInstance().get(Calendar.YEAR),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= System.currentTimeMillis()
+            }
+        }
+    )
 
     val timePickerState = remember(data.measurement.measuredAt) {
         val cal = Calendar.getInstance().apply { timeInMillis = data.measurement.measuredAt }

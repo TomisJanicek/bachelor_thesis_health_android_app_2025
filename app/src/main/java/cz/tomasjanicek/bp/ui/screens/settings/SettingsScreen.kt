@@ -20,16 +20,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -39,6 +44,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +55,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import cz.tomasjanicek.bp.model.ExaminationNotificationTime
+import cz.tomasjanicek.bp.model.MedicineNotificationTime
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.bottomBar.AppSection
 import cz.tomasjanicek.bp.ui.theme.AppTheme
@@ -61,7 +71,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val currentTheme by viewModel.currentTheme.collectAsState()
-    // Načteme množinu povolených sekcí
     val enabledSet by viewModel.enabledSections.collectAsState(initial = emptySet())
 
     Scaffold(
@@ -87,7 +96,7 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .padding(24.dp)
-                .verticalScroll(rememberScrollState()) // Umožníme skrolování, kdyby toho bylo moc
+                .verticalScroll(rememberScrollState())
         ) {
 
             // --- 1. SEKCE: VZHLED ---
@@ -107,7 +116,6 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-
                     ThemeOptionItem(
                         title = "Podle systému",
                         description = "Automaticky přepínat",
@@ -115,9 +123,7 @@ fun SettingsScreen(
                         isSelected = currentTheme == AppTheme.SYSTEM,
                         onClick = { viewModel.onThemeSelected(AppTheme.SYSTEM) }
                     )
-
                     Divider(modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
                     ThemeOptionItem(
                         title = "Světlý režim",
                         description = "Vždy světlé barvy",
@@ -125,9 +131,7 @@ fun SettingsScreen(
                         isSelected = currentTheme == AppTheme.LIGHT,
                         onClick = { viewModel.onThemeSelected(AppTheme.LIGHT) }
                     )
-
                     Divider(modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
                     ThemeOptionItem(
                         title = "Tmavý režim",
                         description = "Šetří baterii a zrak",
@@ -140,7 +144,101 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- 2. SEKCE: MODULY (NOVÉ) ---
+            // --- 2. SEKCE: UPOZORNĚNÍ ---
+            Text(
+                text = "Upozornění",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Načítáme stavy z ViewModelu
+                    val notifEnabled by viewModel.notificationsEnabled.collectAsState()
+                    val medTime by viewModel.medicineNotifTime.collectAsState()
+                    val examTime by viewModel.examNotifTime.collectAsState()
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Povolit upozornění",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Switch(
+                            checked = notifEnabled,
+                            onCheckedChange = { viewModel.toggleNotifications(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MyWhite,
+                                checkedTrackColor = MyGreen,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+                    }
+
+                    if (notifEnabled) {
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        // Nastavení pro Léky
+                        NotificationSelectorItem(
+                            label = "Připomenutí léků",
+                            currentValue = medTime.label,
+                            options = MedicineNotificationTime.values().toList(),
+                            onOptionSelected = { viewModel.setMedicineTime(it) },
+                            labelSelector = { it.label }
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        // Nastavení pro Prohlídky
+                        NotificationSelectorItem(
+                            label = "Připomenutí prohlídek",
+                            currentValue = examTime.label,
+                            options = ExaminationNotificationTime.values().toList(),
+                            onOptionSelected = { viewModel.setExamTime(it) },
+                            labelSelector = { it.label }
+                        )
+
+                        // --- TLAČÍTKO PRO TEST NOTIFIKACE ---
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        OutlinedButton(
+                            onClick = { viewModel.sendTestNotification() },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NotificationsActive,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Vyzkoušet notifikaci (za 5s)")
+                        }
+
+                        Text(
+                            text = "Klikněte a zamkněte telefon pro test zamykací obrazovky.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- 3. SEKCE: ZOBRAZENÉ MODULY ---
             Text(
                 text = "Zobrazené moduly",
                 style = MaterialTheme.typography.titleMedium,
@@ -155,20 +253,15 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-
-                    // Získáme seznam sekcí, které lze vypnout, a projdeme je
                     val toggleableSections = AppSection.values().filter { it.canBeDisabled }
-
                     toggleableSections.forEachIndexed { index, section ->
-
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp), // Trochu menší padding, Switch je velký
+                                .padding(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            // Ikona a název
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                 Icon(
                                     imageVector = section.icon,
@@ -184,8 +277,6 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.Medium
                                 )
                             }
-
-                            // Přepínač
                             Switch(
                                 checked = section in enabledSet,
                                 onCheckedChange = { isChecked ->
@@ -201,25 +292,18 @@ fun SettingsScreen(
                                 )
                             )
                         }
-
-                        // Oddělovač (pokud není poslední)
                         if (index < toggleableSections.size - 1) {
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                            )
+                            Divider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                         }
                     }
                 }
             }
-
-            // Místo dole, aby šlo skrolovat až na konec
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
-// --- KOMPONENTA POLOŽKY (THEME) ---
+// --- KOMPONENTY ---
 @Composable
 fun ThemeOptionItem(
     title: String,
@@ -229,12 +313,10 @@ fun ThemeOptionItem(
     onClick: () -> Unit
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) MyGreen.copy(alpha = 0.15f) else Color.Transparent,
-        label = "bgColor"
+        targetValue = if (isSelected) MyGreen.copy(alpha = 0.15f) else Color.Transparent, label = "bgColor"
     )
     val contentColor by animateColorAsState(
-        targetValue = if (isSelected) MyGreen else MaterialTheme.colorScheme.onSurface,
-        label = "textColor"
+        targetValue = if (isSelected) MyGreen else MaterialTheme.colorScheme.onSurface, label = "textColor"
     )
 
     Row(
@@ -259,37 +341,72 @@ fun ThemeOptionItem(
                 tint = if(isSelected) MyWhite else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = contentColor
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (isSelected) contentColor.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal, color = contentColor)
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = if (isSelected) contentColor.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant)
         }
-
         if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .border(2.dp, MyGreen, RoundedCornerShape(10.dp))
-                    .padding(4.dp)
-                    .background(MyGreen, RoundedCornerShape(10.dp))
-            )
+            Box(modifier = Modifier.size(20.dp).border(2.dp, MyGreen, RoundedCornerShape(10.dp)).padding(4.dp).background(MyGreen, RoundedCornerShape(10.dp)))
         } else {
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .border(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
-            )
+            Box(modifier = Modifier.size(20.dp).border(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(10.dp)))
+        }
+    }
+}
+
+@Composable
+fun <T> NotificationSelectorItem(
+    label: String,
+    currentValue: String,
+    options: List<T>,
+    onOptionSelected: (T) -> Unit,
+    labelSelector: (T) -> String
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = true }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Box {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = currentValue,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(labelSelector(option)) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
         }
     }
 }

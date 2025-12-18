@@ -115,7 +115,7 @@ class AddEditMeasurementViewModel @Inject constructor(
                 val value = fieldUi.valueText.trim().replace(",", ".")
                 if (value.isBlank() || value.toDoubleOrNull() == null) {
                     hasError = true
-                    fieldUi.copy(error = R.string.error_field_required)
+                    fieldUi.copy(error = R.string.error_field_type)
                 } else {
                     fieldUi.copy(error = null)
                 }

@@ -82,7 +82,7 @@ class AddEditCategoryViewModel @Inject constructor(
             // Validace: alespoň jeden parametr
             val fieldsError = if (data.fields.isEmpty()) {
                 isValid = false
-                R.string.error_field_required //TODO dát jiný
+                R.string.error_field_type
             } else null
 
             if (!isValid) {

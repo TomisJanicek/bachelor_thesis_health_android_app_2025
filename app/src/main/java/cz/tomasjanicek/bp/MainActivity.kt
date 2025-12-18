@@ -1,14 +1,21 @@
 package cz.tomasjanicek.bp
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import cz.tomasjanicek.bp.auth.AuthRepository
@@ -30,44 +37,53 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
 
+            // --- 1. Logika pro Téma (Tvůj původní kód) ---
             val appTheme by settingsManager.themeFlow.collectAsState()
 
-            // 2. Vypočítáme, jestli má být tma
             val isDarkTheme = when (appTheme) {
                 AppTheme.LIGHT -> false
                 AppTheme.DARK -> true
                 AppTheme.SYSTEM -> isSystemInDarkTheme()
             }
 
-            // 1. Získáme si ovladač pro systémové UI (lišty)
+            // --- 2. Logika pro System UI (Lišty) ---
             val systemUiController = rememberSystemUiController()
-
-            // 2. Zjistíme, jestli je systém ve světlém nebo tmavém režimu.
-            //    Pokud je ve světlém, potřebujeme tmavé ikony v lištách (a naopak).
-            val useDarkIcons = !isSystemInDarkTheme()
-
-            // 3. LaunchedEffect zajistí, že se toto nastavení provede pouze jednou
-            //    a správně se přizpůsobí při změně světlého/tmavého režimu.
+            val useDarkIcons = !isDarkTheme // Upraveno: Ikony mají být tmavé, když JE světlé téma
 
             LaunchedEffect(systemUiController, useDarkIcons) {
-                // Nastavíme barvu horní lišty (status bar) na průhlednou
                 systemUiController.setStatusBarColor(
                     color = Color.Transparent,
                     darkIcons = useDarkIcons,
                 )
-
-                // Nastavíme barvu dolní lišty (navigation bar) na průhlednou
                 systemUiController.setNavigationBarColor(
-                    color = Color.Transparent, // <-- ZMĚNA ZPĚT: Barva je průhledná
+                    color = Color.Transparent,
                     darkIcons = useDarkIcons,
                     navigationBarContrastEnforced = false
-
-
                 )
             }
+
             BpTheme(
                 darkTheme = isDarkTheme
             ) {
+                // --- 3. NOVÉ: Žádost o notifikace (Android 13+) ---
+                val context = LocalContext.current
+                val permissionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission(),
+                    onResult = { isGranted ->
+                        // Zde můžeš reagovat na výsledek, např. logovat
+                    }
+                )
+
+                LaunchedEffect(Unit) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val permission = Manifest.permission.POST_NOTIFICATIONS
+                        if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                            permissionLauncher.launch(permission)
+                        }
+                    }
+                }
+                // --------------------------------------------------
+
                 NavGraph(
                     startDestination = Destination.SplashScreen.route
                 )

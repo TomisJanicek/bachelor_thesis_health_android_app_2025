@@ -88,5 +88,8 @@ interface MedicineDao {
     @Query("DELETE FROM medicine_reminders")
     suspend fun deleteAllReminders()
 
+    @Query("SELECT * FROM medicine_reminders WHERE medicineId = :medicineId AND status = 'PLANNED' AND plannedDateTime > :now")
+    suspend fun getFuturePlannedRemindersForMedicine(medicineId: Long, now: Long = System.currentTimeMillis()): List<MedicineReminder>
+
 
 }

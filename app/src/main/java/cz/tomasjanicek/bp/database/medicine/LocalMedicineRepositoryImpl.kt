@@ -6,6 +6,8 @@ import cz.tomasjanicek.bp.model.MedicineReminder
 import cz.tomasjanicek.bp.model.RegularityType
 import cz.tomasjanicek.bp.model.ReminderStatus
 import cz.tomasjanicek.bp.services.BackupScheduler
+import cz.tomasjanicek.bp.services.notification.AlarmScheduler
+import cz.tomasjanicek.bp.ui.screens.settings.SettingsManager
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.ZoneId
@@ -17,7 +19,9 @@ import java.time.format.DateTimeFormatter
 
 class LocalMedicineRepositoryImpl @Inject constructor(
     private val dao: MedicineDao,
-    private val backupScheduler: BackupScheduler
+    private val backupScheduler: BackupScheduler,
+    private val alarmScheduler: AlarmScheduler,
+    private val settingsManager: SettingsManager
 ) : IMedicineRepository {
 
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -40,23 +44,57 @@ class LocalMedicineRepositoryImpl @Inject constructor(
 
     override fun getMedicineById(id: Long): Flow<Medicine?> = dao.getMedicineById(id)
 
+    // --- HLAVNÍ METODA PRO ULOŽENÍ A PŘEPOČÍTÁNÍ ---
     override suspend fun saveMedicineAndGenerateReminders(medicine: Medicine) {
-        // 1. Uložíme nastavení léku (nebo ho aktualizujeme) a získáme jeho platné ID
+        // 1. Uložit nastavení léku a získat ID
         val savedMedicineId = dao.saveMedicine(medicine)
-
-        // Vytvoříme si kopii léku už se správným ID
         val medicineWithId = medicine.copy(id = savedMedicineId)
+        val now = System.currentTimeMillis()
 
-        // 2. Smažeme VŠECHNY budoucí (ještě neproběhnuté) připomínky pro tento lék
-        // To je důležité při úpravě - staré plánování musí pryč.
-        dao.deleteFutureRemindersForMedicine(savedMedicineId, System.currentTimeMillis())
+        // 2. ÚKLID STARÝCH BUDÍKŮ (Důležité!)
+        // Nejdřív načteme ty, co chceme smazat, abychom znali jejich ID a zrušili budíky
+        val oldFutureReminders = dao.getFuturePlannedRemindersForMedicine(savedMedicineId, now)
+        oldFutureReminders.forEach { reminder ->
+            alarmScheduler.cancelNotification(reminder.id)
+        }
 
-        // 3. Vygenerujeme NOVÉ připomínky
+        // 3. Smazat staré budoucí připomínky z DB
+        dao.deleteFutureRemindersForMedicine(savedMedicineId, now)
+
+        // 4. Vygenerovat nové připomínky (podle toho, jestli je lék pravidelný nebo ne)
         val newReminders = generateRemindersForMedicine(medicineWithId)
 
-        // 4. Pokud jsme nějaké vygenerovali, uložíme je do databáze
         if (newReminders.isNotEmpty()) {
+            // 5. Vložit nové do DB
             dao.insertReminders(newReminders)
+
+            // 6. NAPLÁNOVAT NOTIFIKACE PRO NOVÉ PŘIPOMÍNKY
+            if (settingsManager.notificationsEnabled.value) {
+                // Načteme offset (o kolik minut dříve připomenout)
+                val offsetMinutes = settingsManager.medicineNotificationTime.value.minutesOffset
+
+                // Musíme si je načíst z DB znovu, abychom měli vygenerovaná ID (autoincrement)
+                // Pokud bychom použili 'newReminders' přímo, mají ID=0
+                val freshReminders = dao.getFuturePlannedRemindersForMedicine(savedMedicineId, now)
+
+                freshReminders.forEach { reminder ->
+                    // Vypočítáme čas: Čas léku MÍNUS offset
+                    val triggerTime = reminder.plannedDateTime - (offsetMinutes * 60 * 1000)
+
+                    val formattedDosage = if (medicine.dosage % 1.0 == 0.0) {
+                        medicine.dosage.toInt().toString()
+                    } else {
+                        medicine.dosage.toString()
+                    }
+
+                    alarmScheduler.scheduleNotification(
+                        id = reminder.id,
+                        dateTime = triggerTime,
+                        title = "Čas na lék",
+                        message = "Vezměte si ${medicine.name} ($formattedDosage ${medicine.unit.label})"
+                    )
+                }
+            }
         }
         backupScheduler.scheduleBackup()
     }
@@ -67,47 +105,52 @@ class LocalMedicineRepositoryImpl @Inject constructor(
             it.status = if (isCompleted) ReminderStatus.COMPLETED else ReminderStatus.PLANNED
             it.completionDateTime = if (isCompleted) System.currentTimeMillis() else null
             dao.updateReminder(it)
+
+            // Pokud splněno -> zrušit notifikaci (pokud ještě neproběhla)
+            if (isCompleted) {
+                alarmScheduler.cancelNotification(reminderId)
+            }
+
             backupScheduler.scheduleBackup()
         }
     }
 
     override suspend fun deleteMedicineAndReminders(medicineId: Long) {
-        // Smažeme všechny připomínky (minulé i budoucí)
+        // 1. Zrušit všechny budoucí alarmy
+        val futureReminders = dao.getFuturePlannedRemindersForMedicine(medicineId)
+        futureReminders.forEach { alarmScheduler.cancelNotification(it.id) }
+
+        // 2. Smazat z DB
         dao.deleteRemindersForMedicine(medicineId)
-        // A následně i samotné nastavení léku
         dao.deleteMedicine(medicineId)
+
         backupScheduler.scheduleBackup()
     }
 
     override suspend fun getMedicineByIdOnce(id: Long): Medicine? {
-        // .firstOrNull() vezme první hodnotu z Flow a pak ho zruší.
-        // Přesně to potřebujeme ve ViewModelu.
         return dao.getMedicineById(id).firstOrNull()
     }
 
     /**
-     * Klíčová privátní funkce, která na základě nastavení léku vygeneruje
-     * konkrétní záznamy `MedicineReminder`.
-     * @param medicine Lék s již platným ID.
+     * Generuje seznam připomínek.
+     * Automaticky pozná, zda jde o PRAVIDELNÝ nebo JEDNORÁZOVÝ lék.
      */
     private fun generateRemindersForMedicine(medicine: Medicine): List<MedicineReminder> {
         val reminders = mutableListOf<MedicineReminder>()
 
         if (medicine.isRegular) {
-            // --- Logika pro PRAVIDELNÉ léky ---
+            // --- A) PRAVIDELNÉ UŽÍVÁNÍ ---
             val today = LocalDate.now()
-            val startDate = Instant.ofEpochMilli(medicine.startDate ?: 0)
+            val startDate = Instant.ofEpochMilli(medicine.startDate ?: System.currentTimeMillis())
                 .atZone(ZoneId.systemDefault()).toLocalDate()
 
-            // Začneme od dnešního dne, nebo od startovního data, pokud je v budoucnosti.
+            // Začínáme od start date, ale ne v minulosti (pokud uživatel edituje starý lék)
             var currentDate = if (startDate.isAfter(today)) startDate else today
 
-            // Koncové datum pro kontrolu ve smyčce (pokud existuje)
             val endDate = medicine.endDate?.let {
                 Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
             }
 
-            // Maximální počet dávek pro kontrolu ve smyčce
             val maxDoses = if (medicine.endingType == EndingType.AFTER_DOSES) {
                 medicine.doseCount
             } else {
@@ -115,17 +158,18 @@ class LocalMedicineRepositoryImpl @Inject constructor(
             }
             var dosesGenerated = 0
 
-            // Generujeme připomínky na max. 90 dní dopředu, ale respektujeme i další podmínky
+            // Generujeme na 90 dní dopředu
             for (i in 0..89) {
                 val dateToSchedule = currentDate.plusDays(i.toLong())
 
-                // --- PODMÍNKA 1: Ukončení k datu ---
+                // Kontrola koncového data
                 if (endDate != null && dateToSchedule.isAfter(endDate)) {
-                    break // Přerušíme smyčku, pokud jsme za koncovým datem
+                    break
                 }
 
                 val dayOfWeek = dateToSchedule.dayOfWeek
 
+                // Má se v tento den brát?
                 val shouldScheduleForThisDay = when (medicine.regularityType) {
                     RegularityType.DAILY -> true
                     RegularityType.WEEKLY -> medicine.regularDays?.contains(dayOfWeek) ?: false
@@ -133,16 +177,16 @@ class LocalMedicineRepositoryImpl @Inject constructor(
 
                 if (shouldScheduleForThisDay) {
                     medicine.regularTimes.forEach { timeInMinutes ->
-                        // --- PODMÍNKA 2: Ukončení po počtu dávek ---
+                        // Kontrola počtu dávek
                         if (maxDoses != null && dosesGenerated >= maxDoses) {
-                            return reminders // Ukončíme celou funkci, máme dost dávek
+                            return reminders
                         }
 
                         val plannedDateTime =
                             dateToSchedule.atTime(timeInMinutes / 60, timeInMinutes % 60)
                                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-                        // Přidáme pouze připomínky, které ještě neproběhly
+                        // Přidáme jen ty, co jsou v budoucnosti (nebo teď)
                         if (plannedDateTime >= System.currentTimeMillis()) {
                             reminders.add(
                                 MedicineReminder(
@@ -151,13 +195,14 @@ class LocalMedicineRepositoryImpl @Inject constructor(
                                     status = ReminderStatus.PLANNED
                                 )
                             )
-                            dosesGenerated++ // Zvýšíme počítadlo vygenerovaných dávek
+                            dosesGenerated++
                         }
                     }
                 }
             }
         } else {
-            // --- Logika pro JEDNORÁZOVÉ léky (zůstává stejná) ---
+            // --- B) JEDNORÁZOVÉ UŽÍVÁNÍ ---
+            // Tady to bylo jednoduché, jen projdeme seznam vybraných termínů
             medicine.singleDates?.forEach { dateTimeMillis ->
                 if (dateTimeMillis >= System.currentTimeMillis()) {
                     reminders.add(

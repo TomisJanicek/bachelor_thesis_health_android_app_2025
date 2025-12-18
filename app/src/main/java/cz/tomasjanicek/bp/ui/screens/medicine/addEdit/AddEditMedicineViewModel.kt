@@ -50,13 +50,11 @@ class AddEditMedicineViewModel @Inject constructor(
                         }.toSet(),
                         startDate = medicine.startDate ?: System.currentTimeMillis(),
                         singleDates = medicine.singleDates?.toSet() ?: emptySet(),
-                        // OPRAVA: Správné načtení nových polí z modelu
                         endingType = medicine.endingType,
                         endDate = medicine.endDate,
                         doseCount = medicine.doseCount?.toString() ?: ""
                     )
                 }
-                // Validujeme načtený stav
                 _uiState.update { validate(it) }
             } else {
                 _uiState.update { it.copy(isLoading = false) }
@@ -67,7 +65,7 @@ class AddEditMedicineViewModel @Inject constructor(
     fun onAction(action: AddEditMedicineAction) {
         val currentState = _uiState.value
         val newState = reduce(action, currentState)
-        _uiState.value = validate(newState) // Vždy validujeme nový stav
+        _uiState.value = validate(newState)
     }
 
     private fun reduce(action: AddEditMedicineAction, currentState: AddEditMedicineUIState): AddEditMedicineUIState {
@@ -104,9 +102,7 @@ class AddEditMedicineViewModel @Inject constructor(
             is AddEditMedicineAction.OnDoseCountChanged -> currentState.copy(doseCount = action.count.filter { it.isDigit() })
 
             is AddEditMedicineAction.OnSaveClicked -> {
-                // Označíme pokus o uložení
                 val stateWithAttempt = currentState.copy(hasAttemptedSave = true)
-                // Pokud je validní po označení, uložíme
                 if (validate(stateWithAttempt).canBeSaved) {
                     saveMedicine(stateWithAttempt)
                 }
@@ -120,6 +116,7 @@ class AddEditMedicineViewModel @Inject constructor(
         val isDosageValid = (state.dosage.toDoubleOrNull() ?: 0.0) > 0.0
 
         val areTimesValid = if (state.isRegular) {
+            // Validace pro pravidelné
             val isEndingValid = when (state.endingType) {
                 EndingType.INDEFINITELY -> true
                 EndingType.UNTIL_DATE -> state.endDate != null && state.endDate > state.startDate
@@ -127,6 +124,7 @@ class AddEditMedicineViewModel @Inject constructor(
             }
             state.regularTimes.isNotEmpty() && isEndingValid
         } else {
+            // Validace pro jednorázové: Musí být vybrán alespoň jeden termín
             state.singleDates.isNotEmpty()
         }
 
@@ -138,6 +136,7 @@ class AddEditMedicineViewModel @Inject constructor(
         val calculatedRegularityType = if (stateToSave.isRegular) {
             if (stateToSave.regularDays.isEmpty() || stateToSave.regularDays.size == 7) RegularityType.DAILY else RegularityType.WEEKLY
         } else {
+            // U jednorázových je to jedno, dáme DAILY jako default
             RegularityType.DAILY
         }
 
@@ -152,8 +151,8 @@ class AddEditMedicineViewModel @Inject constructor(
             regularDays = stateToSave.regularDays.toList().sorted(),
             regularTimes = stateToSave.regularTimes.map { it.hour * 60 + it.minute }.sorted(),
             startDate = stateToSave.startDate,
+            // Pro jednorázové uložíme seznam dat
             singleDates = stateToSave.singleDates.toList().sorted(),
-            // OPRAVA: Správné uložení nových polí
             endingType = stateToSave.endingType,
             endDate = if (stateToSave.endingType == EndingType.UNTIL_DATE) stateToSave.endDate else null,
             doseCount = if (stateToSave.endingType == EndingType.AFTER_DOSES) stateToSave.doseCount.toIntOrNull() else null

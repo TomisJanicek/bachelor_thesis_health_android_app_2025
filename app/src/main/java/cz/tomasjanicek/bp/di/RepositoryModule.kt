@@ -22,6 +22,8 @@ import cz.tomasjanicek.bp.database.medicine.IMedicineRepository
 import cz.tomasjanicek.bp.database.medicine.LocalMedicineRepositoryImpl
 import cz.tomasjanicek.bp.database.medicine.MedicineDao
 import cz.tomasjanicek.bp.services.BackupScheduler
+import cz.tomasjanicek.bp.services.notification.AlarmScheduler
+import cz.tomasjanicek.bp.ui.screens.settings.SettingsManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,13 +34,22 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 
+    // --- ZMĚNA ZDE: Přidány parametry alarmScheduler a settingsManager ---
     @Provides
     @Singleton
     fun provideExaminationsRepository(
         dao: ExaminationDao,
-        backupScheduler: BackupScheduler // 1. Injectneme Scheduler sem
-    ): ILocalExaminationsRepository = LocalExaminationsRepositoryImpl(dao, backupScheduler) // 2. Předáme ho konstruktoru
-
+        doctorDao: DoctorDao,
+        backupScheduler: BackupScheduler,
+        alarmScheduler: AlarmScheduler, // <-- Nové
+        settingsManager: SettingsManager // <-- Nové
+    ): ILocalExaminationsRepository = LocalExaminationsRepositoryImpl(
+        dao,
+        doctorDao,
+        backupScheduler,
+        alarmScheduler,
+        settingsManager
+    )
     @Provides
     @Singleton
     fun provideDoctorsRepository(
@@ -66,8 +77,15 @@ object RepositoryModule {
     @Singleton
     fun provideMedicineRepository(
         dao: MedicineDao,
-        backupScheduler: BackupScheduler
-    ): IMedicineRepository = LocalMedicineRepositoryImpl(dao, backupScheduler)
+        backupScheduler: BackupScheduler,
+        alarmScheduler: AlarmScheduler, // <-- Nové
+        settingsManager: SettingsManager // <-- Nové
+    ): IMedicineRepository = LocalMedicineRepositoryImpl(
+        dao,
+        backupScheduler,
+        alarmScheduler,
+        settingsManager
+    )
 
     @Provides
     @Singleton

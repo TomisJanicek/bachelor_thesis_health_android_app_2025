@@ -46,7 +46,7 @@ object DoctorData {
         ),
         Doctor(
             specialization = "Chirurgie",
-            image = "doctor_surgery"
+            image = "doctor_chirurgie"
         ),
         Doctor(
             specialization = "Psychiatrie",
