@@ -29,7 +29,7 @@ class BackupScheduler @Inject constructor(
         // ten předchozí se zruší a čas běží znovu.
         val workRequest = OneTimeWorkRequestBuilder<BackupWorker>()
             .setConstraints(constraints)
-            .setInitialDelay(15, TimeUnit.MINUTES)
+            .setInitialDelay(15, TimeUnit.SECONDS)
             .addTag("backup_work")
             .build()
 

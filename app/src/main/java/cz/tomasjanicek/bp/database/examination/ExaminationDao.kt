@@ -16,7 +16,10 @@ interface ExaminationDao {
     @Query("SELECT * FROM examinations")
     fun getAll(): Flow<List<Examination>>
 
-    @Insert
+    // --- OPRAVA ZDE: Přidáno onConflict = OnConflictStrategy.REPLACE ---
+    // Toto zajistí, že pokud vložíme záznam s ID, které už existuje,
+    // Room ho přepíše (aktualizuje) místo toho, aby shodil aplikaci chybou.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(examination: Examination): Long
 
     @Update
@@ -31,23 +34,16 @@ interface ExaminationDao {
     @Query("DELETE FROM examinations")
     suspend fun deleteAll()
 
-    // --- PŘIDEJ TUTO METODU ---
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(examinations: List<Examination>)
-    // --- KONEC PŘIDANÉ METODY ---
 
-    @Transaction // Nezbytné pro relační dotazy!
+    @Transaction
     @Query("SELECT * FROM examinations")
     fun getAllWithDoctors(): Flow<List<ExaminationWithDoctor>>
 
     @Query("SELECT * FROM examinations WHERE doctorId = :doctorId ORDER BY dateTime DESC")
-    suspend fun getExaminationsByDoctor(doctorId: Long): List<Examination> // <-- PŘIDAT TUTO METODU
+    suspend fun getExaminationsByDoctor(doctorId: Long): List<Examination>
 
-    /**
-     * Načte jedno konkrétní vyšetření podle jeho ID a rovnou k němu
-     * pomocí relace připojí odpovídající objekt doktora.
-     * Anotace @Transaction je zde naprosto klíčová.
-     */
     @Transaction
     @Query("SELECT * FROM examinations WHERE id = :examinationId")
     fun getExaminationWithDoctorById(examinationId: Long): Flow<ExaminationWithDoctor?>

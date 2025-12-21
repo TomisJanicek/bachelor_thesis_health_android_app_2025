@@ -113,13 +113,13 @@ fun StatsScreen(
                 ),
                 title = {
                     Text(
-                        "Prohlídky",
+                        "Statistiky",
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Navigace na profil */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToUserScreen() }) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Profil uživatele"
@@ -127,7 +127,7 @@ fun StatsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Navigace do nastavení */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToSettingsScreen()  }) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "Nastavení"

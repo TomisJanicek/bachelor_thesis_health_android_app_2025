@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,7 +81,19 @@ fun ListOfMeasurementCategory(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { throw RuntimeException("Test Crash")}) {
+                    // --- NOVÉ TLAČÍTKO PRO RYCHLÉ PŘIDÁNÍ ---
+                    IconButton(onClick = {
+                        navigationRouter.navigateToDefaultCategories() // <-- Volání navigace
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.PlaylistAdd,
+                            contentDescription = "Přidat doporučené",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    // ----------------------------------------
+
+                    IconButton(onClick = { navigationRouter.navigateToSettingsScreen() }) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "Nastavení",

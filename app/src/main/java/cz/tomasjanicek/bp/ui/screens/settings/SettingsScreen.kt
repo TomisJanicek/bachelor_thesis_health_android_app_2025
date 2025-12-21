@@ -22,9 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -39,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -61,6 +66,7 @@ import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.elements.bottomBar.AppSection
 import cz.tomasjanicek.bp.ui.theme.AppTheme
 import cz.tomasjanicek.bp.ui.theme.MyGreen
+import cz.tomasjanicek.bp.ui.theme.MyRed
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 
 // --- SCREEN ---
@@ -72,6 +78,39 @@ fun SettingsScreen(
 ) {
     val currentTheme by viewModel.currentTheme.collectAsState()
     val enabledSet by viewModel.enabledSections.collectAsState(initial = emptySet())
+
+    // State pro dialog potvrzení smazání
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // Dialog pro potvrzení smazání dat
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(text = "Smazat všechna data?") },
+            text = {
+                Text("Tato akce je nevratná. Všechny vaše záznamy (léky, prohlídky, měření) budou trvale odstraněny.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.clearAllData()
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MyRed)
+                ) {
+                    Text("Smazat", color = MyWhite)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Zrušit")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -299,9 +338,64 @@ fun SettingsScreen(
                 }
             }
             Spacer(modifier = Modifier.height(32.dp))
+            // --- 4. SEKCE: SPRÁVA DAT (NOVÉ) ---
+            Text(
+                text = "Správa dat",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary, // Nebo MyRed, pokud chcete zdůraznit nebezpečí
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Vymazat data",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Smaže vše kromě nastavení.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Button(
+                            onClick = { showDeleteDialog = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteForever,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Smazat")
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
+
 
 // --- KOMPONENTY ---
 @Composable

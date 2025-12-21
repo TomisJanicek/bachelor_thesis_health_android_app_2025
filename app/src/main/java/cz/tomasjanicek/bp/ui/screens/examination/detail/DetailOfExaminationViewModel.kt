@@ -147,14 +147,24 @@ class DetailOfExaminationViewModel @Inject constructor(
 
     fun deleteExamination(examination: Examination) {
         viewModelScope.launch {
+            // 1. Smažeme záznam
             examinationRepository.delete(examination)
 
-            // Znovu načteme data, aby se změna projevila v UI
             val doctorId = examination.doctorId
             if (doctorId != null) {
-                loadDoctorAndExaminations(doctorId)
+                // 2. Místo pouhého načtení (loadDoctorAndExaminations) se podíváme, co zbylo
+                val remainingExaminations = examinationRepository.getExaminationsByDoctor(doctorId)
+
+                if (remainingExaminations.isEmpty()) {
+                    // 3a. Pokud je seznam prázdný -> přepneme na stav AllDeleted
+                    _uiState.value = DetailOfExaminationUIState.AllDeleted
+                } else {
+                    // 3b. Pokud tam ještě něco je -> načteme obrazovku znovu jako obvykle
+                    loadDoctorAndExaminations(doctorId)
+                }
             }
-            // Skryjeme sheet, protože položka už neexistuje
+
+            // Skryjeme sheet
             hideExaminationDetailSheet()
         }
     }

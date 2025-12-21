@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -35,6 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,31 +48,22 @@ import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DoctorEditScreen( // Přejmenováno
+fun DoctorEditScreen(
     navigationRouter: INavigationRouter,
-    doctorId: Long, // Už není volitelný, protože vždy upravujeme
+    doctorId: Long,
     latitudeFromResult: Double?,
     longitudeFromResult: Double?,
     onResultConsumed: () -> Unit
 ) {
-    val viewModel: DoctorEditViewModel = hiltViewModel() // Přejmenováno
+    val viewModel: DoctorEditViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Efekt, který se spustí POUZE JEDNOU, když dorazí výsledek z mapy
     LaunchedEffect(latitudeFromResult, longitudeFromResult) {
-        Log.d("LocationFlow", "[DoctorEditScreen] LaunchedEffect se spustil s hodnotami: lat=${latitudeFromResult}, lng=${longitudeFromResult}")
         if (latitudeFromResult != null && longitudeFromResult != null) {
-            Log.d("LocationFlow", "[DoctorEditScreen] Volám viewModel.handleLocationResult()")
-
-            // Zavoláme metodu a počkáme, až její Job doběhne
             viewModel.handleLocationResult(latitudeFromResult, longitudeFromResult).join()
-
-            // Až POTÉ, co ViewModel vše zpracuje, smažeme výsledek.
-            Log.d("LocationFlow", "[DoctorEditScreen] ViewModel dokončil zpracování, volám onResultConsumed()")
             onResultConsumed()
         }
     }
-
 
     LaunchedEffect(key1 = doctorId) {
         viewModel.subscribeToDoctorUpdates(doctorId)
@@ -98,7 +92,6 @@ fun DoctorEditScreen( // Přejmenováno
             )
         },
         bottomBar = {
-            // Data potřebujeme získat z aktuálního stavu
             val data = (uiState as? DoctorEditUIState.Success)?.data
 
             Row(
@@ -111,8 +104,9 @@ fun DoctorEditScreen( // Přejmenováno
                 Button(
                     onClick = { viewModel.saveDoctor() },
                     modifier = Modifier.fillMaxWidth(),
-                    // Tlačítko je aktivní, jen pokud je jméno validní a data jsou načtena
-                    enabled = data != null && data.nameError == null
+                    // ZMĚNA: Přidána kontrola data.emailError == null
+                    // Tlačítko bude neaktivní, pokud je chyba ve jméně NEBO v emailu
+                    enabled = data != null && data.nameError == null && data.emailError == null
                 ) {
                     Text("Uložit", color = MyBlack)
                 }
@@ -121,10 +115,7 @@ fun DoctorEditScreen( // Přejmenováno
     ) { innerPadding ->
         when (val state = uiState) {
             is DoctorEditUIState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
@@ -134,7 +125,6 @@ fun DoctorEditScreen( // Přejmenováno
                     data = state.data,
                     actions = viewModel,
                     modifier = Modifier.padding(innerPadding),
-                    // ZMĚNA: Předáváme logiku pro navigaci na mapu přímo sem
                     onSelectLocationOnMapClicked = {
                         val doctor = state.data.doctor
                         navigationRouter.navigateToMapSelectorScreen(
@@ -146,30 +136,24 @@ fun DoctorEditScreen( // Přejmenováno
             }
 
             is DoctorEditUIState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(state.message, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
 
-            is DoctorEditUIState.DoctorSaved -> {
-                // Tento stav už jen čeká na navigaci, není třeba nic zobrazovat
-            }
+            is DoctorEditUIState.DoctorSaved -> { }
         }
     }
 }
 
 
 @Composable
-private fun DoctorEditContent( // Přejmenováno
+private fun DoctorEditContent(
     data: DoctorEditData,
     actions: DoctorEditAction,
     modifier: Modifier = Modifier,
     onSelectLocationOnMapClicked: () -> Unit
 ) {
-    // Pokud se data ještě nenačetla, nezobrazuj nic
     val doctor = data.doctor ?: return
     val decimalFormat = DecimalFormat("#.######")
 
@@ -181,7 +165,7 @@ private fun DoctorEditContent( // Přejmenováno
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(vertical = 16.dp),
 
-    ) {
+        ) {
         item {
             Text(
                 text = doctor.specialization,
@@ -189,7 +173,7 @@ private fun DoctorEditContent( // Přejmenováno
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
-        // Jméno (povinné)
+        // Jméno
         item {
             OutlinedTextField(
                 value = doctor.name ?: "",
@@ -200,10 +184,7 @@ private fun DoctorEditContent( // Přejmenováno
                 singleLine = true,
                 supportingText = {
                     if (data.nameError != null) {
-                        Text(
-                            stringResource(id = data.nameError),
-                            color = MyRed
-                        )
+                        Text(stringResource(id = data.nameError), color = MyRed)
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -223,6 +204,7 @@ private fun DoctorEditContent( // Přejmenováno
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Telefon") },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), // Doporučeno pro telefon
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
@@ -232,7 +214,8 @@ private fun DoctorEditContent( // Přejmenováno
                 )
             )
         }
-        // Email
+
+        // --- ZMĚNA: EMAIL ---
         item {
             OutlinedTextField(
                 value = doctor.email ?: "",
@@ -240,6 +223,22 @@ private fun DoctorEditContent( // Přejmenováno
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Email") },
                 singleLine = true,
+                // 1. Nastavíme klávesnici speciálně pro Email (zavináč bude hned dostupný)
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                // 2. Aktivace červeného rámečku, pokud je chyba
+                isError = data.emailError != null,
+                // 3. Text chyby pod polem
+                supportingText = {
+                    if (data.emailError != null) {
+                        Text(
+                            stringResource(id = data.emailError),
+                            color = MyRed
+                        )
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
@@ -249,9 +248,9 @@ private fun DoctorEditContent( // Přejmenováno
                 )
             )
         }
-        // Adresa s tlačítkem pro výběr
+
+        // Adresa
         item {
-            // Zjistíme, jestli máme nějaká data ke smazání
             val hasLocationData = !doctor.addressLabel.isNullOrBlank() || doctor.latitude != null
 
             OutlinedTextField(
@@ -267,20 +266,16 @@ private fun DoctorEditContent( // Přejmenováno
                     focusedBorderColor = MaterialTheme.colorScheme.primary
                 ),
                 trailingIcon = {
-                    // Použijeme Row, abychom mohli mít více ikon vedle sebe
                     Row {
-                        // 1. Ikona SMAZAT (zobrazí se jen, když jsou data)
                         if (hasLocationData) {
                             IconButton(onClick = { actions.onLocationCleared() }) {
                                 Icon(
-                                    imageVector = Icons.Default.Close, // Křížek pro smazání
+                                    imageVector = Icons.Default.Close,
                                     contentDescription = "Smazat polohu",
-                                    tint = MaterialTheme.colorScheme.error // Červená barva pro efekt
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
-
-                        // 2. Ikona MAPA (zobrazí se vždy, aby šlo polohu přidat/změnit)
                         IconButton(onClick = onSelectLocationOnMapClicked) {
                             Icon(
                                 imageVector = Icons.Default.Map,
@@ -293,7 +288,7 @@ private fun DoctorEditContent( // Přejmenováno
             )
         }
 
-        // Zobrazení souřadnic
+        // Souřadnice
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -301,24 +296,24 @@ private fun DoctorEditContent( // Přejmenováno
             ) {
                 OutlinedTextField(
                     value = doctor.latitude?.let { decimalFormat.format(it) } ?: "N/A",
-                    onValueChange = { /* Read-only */ },
+                    onValueChange = { },
                     modifier = Modifier.weight(1f),
-                    label = { Text("Latitude") },
+                    label = { Text("Zeměpisná šířka") },
                     readOnly = true,
-                    enabled = false // Vizuálně odliší pole jako neaktivní
+                    enabled = false
                 )
                 OutlinedTextField(
                     value = doctor.longitude?.let { decimalFormat.format(it) } ?: "N/A",
-                    onValueChange = { /* Read-only */ },
+                    onValueChange = { },
                     modifier = Modifier.weight(1f),
-                    label = { Text("Longitude") },
+                    label = { Text("Zeměpisná výška") },
                     readOnly = true,
-                    enabled = false // Vizuálně odliší pole jako neaktivní
+                    enabled = false
                 )
             }
         }
 
-        // Popisek/Subtitle
+        // Popisek
         item {
             OutlinedTextField(
                 value = doctor.subtitle ?: "",

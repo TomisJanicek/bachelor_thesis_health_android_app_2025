@@ -13,6 +13,8 @@ class HealthApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    // ZMĚNA: Místo funkce 'override fun getWorkManagerConfiguration()'
+    // musíte použít 'override val workManagerConfiguration'
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)

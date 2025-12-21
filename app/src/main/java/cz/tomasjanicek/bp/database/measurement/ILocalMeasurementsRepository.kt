@@ -3,6 +3,7 @@ package cz.tomasjanicek.bp.database.measurement
 import cz.tomasjanicek.bp.model.Measurement
 import cz.tomasjanicek.bp.model.MeasurementValue
 import cz.tomasjanicek.bp.model.MeasurementWithValues
+import cz.tomasjanicek.bp.model.data.MeasurementData
 import kotlinx.coroutines.flow.Flow
 
 interface ILocalMeasurementsRepository {

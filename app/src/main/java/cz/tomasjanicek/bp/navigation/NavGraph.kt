@@ -10,8 +10,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.firebase.auth.FirebaseAuth
-import cz.tomasjanicek.bp.auth.AuthRepository
 import cz.tomasjanicek.bp.auth.LoginScreen
 import cz.tomasjanicek.bp.ui.screens.cycle.CycleScreen
 import cz.tomasjanicek.bp.ui.screens.examination.addEdit.AddEditExaminationScreen
@@ -23,6 +21,7 @@ import cz.tomasjanicek.bp.ui.screens.injection.AddEditInjectionScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.addEditCategory.AddEditCategoryScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.addEditMeasurement.AddEditMeasurementScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.categoryDetail.MeasurementCategoryDetailScreen
+import cz.tomasjanicek.bp.ui.screens.measurement.defaultCategories.DefaultCategoriesScreen
 import cz.tomasjanicek.bp.ui.screens.measurement.list.ListOfMeasurementCategory
 import cz.tomasjanicek.bp.ui.screens.medicine.addEdit.AddEditMedicineScreen
 import cz.tomasjanicek.bp.ui.screens.medicine.list.MedicineListScreen
@@ -291,6 +290,10 @@ fun NavGraph(
         }
         composable(Destination.SettingsScreen.route) {
             SettingsScreen(navigationRouter = navigationRouter)
+        }
+
+        composable(Destination.DefaultCategories.route) {
+            DefaultCategoriesScreen(navigationRouter = navigationRouter)
         }
     }
 }

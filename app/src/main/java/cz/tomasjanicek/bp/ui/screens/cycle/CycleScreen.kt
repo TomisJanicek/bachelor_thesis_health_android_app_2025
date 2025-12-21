@@ -90,7 +90,7 @@ fun CycleScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToSettingsScreen() }) {
                         Icon(Icons.Default.Settings, "Nastavení", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }

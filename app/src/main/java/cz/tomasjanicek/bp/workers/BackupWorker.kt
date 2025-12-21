@@ -1,6 +1,7 @@
 package cz.tomasjanicek.bp.workers
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -19,29 +20,32 @@ class BackupWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        Log.d("BackupWorker", "🚀 START: BackupWorker se probudil a začíná pracovat.") // <-- LOG
+
         try {
-            // 1. Zjistíme, zda je uživatel přihlášený
             val context = applicationContext
             val account = GoogleSignIn.getLastSignedInAccount(context)
 
             if (account == null) {
-                // Uživatel není přihlášen, nemůžeme zálohovat
-                // Vracíme success, abychom systém nenutili to zkoušet znovu
+                Log.e("BackupWorker", "❌ CHYBA: Uživatel není přihlášen, končím.") // <-- LOG
                 return@withContext Result.success()
             }
 
-            // 2. Provedeme zálohu
+            Log.d("BackupWorker", "ℹ️ Uživatel nalezen: ${account.email}, odesílám data...") // <-- LOG
+
             val result = driveRepository.backupToDrive(account)
 
             if (result.isSuccess) {
+                Log.d("BackupWorker", "✅ ÚSPĚCH: Záloha byla úspěšně nahrána na Google Drive.") // <-- LOG
                 return@withContext Result.success()
             } else {
-                // Pokud to selhalo (např. chyba sítě), WorkManager to zkusí později znovu
+                Log.e("BackupWorker", "⚠️ NEÚSPĚCH: Záloha selhala, zkusím to později. Chyba: ${result.exceptionOrNull()?.message}") // <-- LOG
                 return@withContext Result.retry()
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e("BackupWorker", "❌ KRITICKÁ CHYBA: ${e.message}") // <-- LOG
             return@withContext Result.failure()
         }
     }

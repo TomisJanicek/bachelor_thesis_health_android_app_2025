@@ -3,6 +3,7 @@ package cz.tomasjanicek.bp.database.measurement
 import cz.tomasjanicek.bp.model.MeasurementCategory
 import cz.tomasjanicek.bp.model.MeasurementCategoryField
 import cz.tomasjanicek.bp.model.MeasurementCategoryWithFields
+import cz.tomasjanicek.bp.model.data.MeasurementData
 import kotlinx.coroutines.flow.Flow
 
 interface ILocalMeasurementCategoriesRepository {
@@ -28,4 +29,10 @@ interface ILocalMeasurementCategoriesRepository {
     suspend fun updateField(field: MeasurementCategoryField)
 
     suspend fun deleteField(field: MeasurementCategoryField)
+
+    suspend fun initializeDefaultCategories()
+
+    suspend fun initializeCategoriesIfEmpty()
+    suspend fun createSelectedDefaultCategories(selectedCategories: List<MeasurementData.CategoryDef>)
+
 }

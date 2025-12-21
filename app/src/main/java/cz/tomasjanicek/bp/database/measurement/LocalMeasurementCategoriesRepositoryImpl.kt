@@ -3,6 +3,7 @@ package cz.tomasjanicek.bp.database.measurement
 import cz.tomasjanicek.bp.model.MeasurementCategory
 import cz.tomasjanicek.bp.model.MeasurementCategoryField
 import cz.tomasjanicek.bp.model.MeasurementCategoryWithFields
+import cz.tomasjanicek.bp.model.data.MeasurementData
 import cz.tomasjanicek.bp.services.BackupScheduler
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -58,6 +59,100 @@ class LocalMeasurementCategoriesRepositoryImpl @Inject constructor(
 
     override suspend fun deleteField(field: MeasurementCategoryField) {
         categoryDao.deleteField(field)
+        backupScheduler.scheduleBackup()
+    }
+    override suspend fun initializeDefaultCategories() {
+        // Projdeme všechny definované defaultní kategorie
+        for (def in MeasurementData.defaultCategories) {
+
+            // 1. Zkontrolujeme, zda už kategorie existuje podle jména
+            val existing = categoryDao.getCategoryByName(def.name)
+
+            if (existing == null) {
+                // 2. Pokud neexistuje, vytvoříme kategorii
+                val newCategory = MeasurementCategory(
+                    name = def.name,
+                    description = def.description
+                )
+
+                // Vložíme a získáme vygenerované ID
+                val newCategoryId = categoryDao.insertCategory(newCategory)
+
+                // 3. Vytvoříme a vložíme pole pro tuto kategorii
+                val fieldsToInsert = def.fields.map { fieldDef ->
+                    MeasurementCategoryField(
+                        categoryId = newCategoryId, // Použijeme ID nové kategorie
+                        name = fieldDef.name,
+                        label = fieldDef.label,
+                        unit = fieldDef.unit,
+                        minValue = fieldDef.min,
+                        maxValue = fieldDef.max
+                    )
+                }
+
+                categoryDao.insertFields(fieldsToInsert)
+            }
+            // Pokud existuje, neděláme nic (respektujeme uživatelská data)
+        }
+    }
+    override suspend fun initializeCategoriesIfEmpty() {
+        val count = categoryDao.getCount()
+        if (count == 0) {
+            // Tabulka je prázdná -> Vkládáme defaultní data
+            for (def in MeasurementData.defaultCategories) {
+                // 1. Vytvoříme a vložíme kategorii
+                val newCategory = MeasurementCategory(
+                    name = def.name,
+                    description = def.description
+                )
+
+                // insertCategory vrací nové ID (Long)
+                val newCategoryId = categoryDao.insertCategory(newCategory)
+
+                // 2. Vytvoříme pole pro tuto kategorii s použitím získaného ID
+                val fieldsToInsert = def.fields.map { fieldDef ->
+                    MeasurementCategoryField(
+                        categoryId = newCategoryId, // Vazba na rodiče
+                        name = fieldDef.name,
+                        label = fieldDef.label,
+                        unit = fieldDef.unit,
+                        minValue = fieldDef.min,
+                        maxValue = fieldDef.max
+                    )
+                }
+
+                // 3. Vložíme pole hromadně
+                categoryDao.insertFields(fieldsToInsert)
+            }
+        }
+    }
+    override suspend fun createSelectedDefaultCategories(selectedCategories: List<MeasurementData.CategoryDef>) {
+        for (def in selectedCategories) {
+            // 1. Zkontrolujeme duplicitu podle jména
+            val existing = categoryDao.getCategoryByName(def.name)
+
+            if (existing == null) {
+                // 2. Vytvoříme kategorii
+                val newCategory = MeasurementCategory(
+                    name = def.name,
+                    description = def.description
+                )
+                val newCategoryId = categoryDao.insertCategory(newCategory)
+
+                // 3. Vytvoříme pole
+                val fieldsToInsert = def.fields.map { fieldDef ->
+                    MeasurementCategoryField(
+                        categoryId = newCategoryId,
+                        name = fieldDef.name,
+                        label = fieldDef.label,
+                        unit = fieldDef.unit,
+                        minValue = fieldDef.min,
+                        maxValue = fieldDef.max
+                    )
+                }
+                categoryDao.insertFields(fieldsToInsert)
+            }
+        }
         backupScheduler.scheduleBackup()
     }
 }

@@ -61,8 +61,10 @@ fun AddEditExaminationScreen(
     id: Long?
 ) {
     val viewModel = hiltViewModel<AddEditExaminationViewModel>()
-
     val state = viewModel.addEditExaminationUIState.collectAsStateWithLifecycle()
+
+    // 1. Zjištění, zda upravujeme (ID není null a není 0/-1)
+    val isEditMode = id != null && id != 0L && id != -1L
 
     var data by remember {
         mutableStateOf(AddEditExaminationData())
@@ -93,17 +95,15 @@ fun AddEditExaminationScreen(
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    // Použij primární barvu z tvého tématu (která je MyGreen)
                     containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
-
-                    // Barva pro nadpis a ikony
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
                     actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
+                // 2. Dynamický nadpis podle režimu
                 title = {
-                    Text("Přidat / upravit")
+                    Text(if (isEditMode) "Upravit prohlídku" else "Přidat prohlídku")
                 },
                 navigationIcon = {
                     IconButton(onClick = { navigationRouter.returBack() }) {
@@ -115,24 +115,24 @@ fun AddEditExaminationScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        viewModel.deleteExamination()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Odstranit",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
+                    // 3. Tlačítko pro smazání zobrazit POUZE v režimu úprav
+                    if (isEditMode) {
+                        IconButton(onClick = {
+                            viewModel.deleteExamination()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Odstranit",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
                     }
                 },
             )
         },
-        // Tlačítko pro uložení
         bottomBar = {
-            // Použijeme standardní Row pro zarovnání a padding
             Row(modifier = Modifier
                 .fillMaxWidth()
-                // Barva pozadí stejná jako u TopAppBar pro konzistenci
                 .background(MaterialTheme.colorScheme.background)
                 .padding(WindowInsets.navigationBars.asPaddingValues())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -140,7 +140,6 @@ fun AddEditExaminationScreen(
                 Button(
                     onClick = { viewModel.saveExamination() },
                     modifier = Modifier.fillMaxWidth(),
-                    // Tlačítko bude aktivní, pouze pokud jsou všechna povinná pole validní
                     enabled = data.purposeError == null && data.doctorError == null && data.dateTimeError == null
                 ) {
                     Text("Uložit", color = MyBlack)
@@ -165,13 +164,11 @@ fun AddEditExaminationContent(
     data: AddEditExaminationData,
     actions: AddEditExaminationAction
 ) {
-    // 1. Stavy pro zobrazení/skrytí dialogových oken
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var typeMenuExpanded by remember { mutableStateOf(false) }
     var doctorMenuExpanded by remember { mutableStateOf(false) }
 
-    // 2. Stavy pro samotný DatePicker a TimePicker
     val datePickerState = remember(data.examination.dateTime) {
         DatePickerState(
             locale = java.util.Locale.getDefault(),
@@ -214,12 +211,11 @@ fun AddEditExaminationContent(
                     text = stringResource(id = data.purposeError),
                     color = MyRed,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp) // Odsadíme, aby licoval s textem
+                    modifier = Modifier.padding(start = 16.dp)
                 )
             }
         }
         item {
-            // 1. Pomocná funkce pro formátování jména (aby se logika neopakovala)
             fun getDoctorDisplayName(doctor: Doctor): String {
                 return if (!doctor.name.isNullOrBlank()) {
                     "${doctor.name} (${doctor.specialization})"
@@ -228,11 +224,8 @@ fun AddEditExaminationContent(
                 }
             }
 
-            // 2. Získání textu pro vybraného lékaře (použijeme stejné formátování)
             val selectedDoctor = data.doctors.find { it.id == data.examination.doctorId }
             val selectedDoctorText = selectedDoctor?.let { getDoctorDisplayName(it) } ?: ""
-
-            // 3. Seřazení seznamu lékařů abecedně podle zobrazovaného názvu
             val sortedDoctors = data.doctors.sortedBy { getDoctorDisplayName(it) }
 
             ExposedDropdownMenuBox(
@@ -240,7 +233,7 @@ fun AddEditExaminationContent(
                 onExpandedChange = { doctorMenuExpanded = !doctorMenuExpanded }
             ) {
                 OutlinedTextField(
-                    value = selectedDoctorText, // Zde použijeme formátovaný text
+                    value = selectedDoctorText,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Lékař") },
@@ -271,11 +264,9 @@ fun AddEditExaminationContent(
                     onDismissRequest = { doctorMenuExpanded = false },
                     modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 ) {
-                    // ZMĚNA: Iterujeme přes seřazený seznam
                     sortedDoctors.forEach { doctor ->
                         DropdownMenuItem(
                             text = {
-                                // Zde voláme naši formátovací funkci
                                 Text(text = getDoctorDisplayName(doctor))
                             },
                             onClick = {
@@ -318,19 +309,16 @@ fun AddEditExaminationContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor( // <-- Nové, správné volání
+                        .menuAnchor(
                             type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                            enabled = true // Pole je aktivní pro rozbalení menu
-                        ), // Důležité pro správné umístění menu
+                            enabled = true
+                        ),
                     colors = OutlinedTextFieldDefaults.colors(
-                        // --- Normální stav (není vybráno, není chyba) ---
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-
-                        // --- Stav, když je pole vybráno (kliknuto) ---
                         focusedTextColor = MaterialTheme.colorScheme.primary,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         focusedLabelColor = MaterialTheme.colorScheme.primary,
@@ -341,7 +329,7 @@ fun AddEditExaminationContent(
                 ExposedDropdownMenu(
                     expanded = typeMenuExpanded,
                     onDismissRequest = { typeMenuExpanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background) // Nebo jakákoliv jiná barva
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 ) {
                     ExaminationType.values().forEach { type ->
                         DropdownMenuItem(
@@ -414,7 +402,6 @@ fun AddEditExaminationContent(
             onConfirm = {
                 showTimePicker = false
                 val cal = Calendar.getInstance().apply {
-                    // Použijeme správnou vlastnost `selectedDateMillis`
                     timeInMillis = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
                 }
                 cal.set(Calendar.HOUR_OF_DAY, timePickerState.hour)

@@ -152,7 +152,7 @@ fun MedicineListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Navigace do nastavení */ }) {
+                    IconButton(onClick = { navigationRouter.navigateToSettingsScreen()  }) {
                         Icon(imageVector = Icons.Filled.Settings, contentDescription = "Nastavení")
                     }
                 },

@@ -25,6 +25,18 @@ class SettingsManager @Inject constructor(
         private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
         private const val KEY_MEDICINE_NOTIF_TIME = "medicine_notif_time"
         private const val KEY_EXAM_NOTIF_TIME = "exam_notif_time"
+
+        // NOVÉ: Klíč pro onboarding
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+    }
+
+    // --- ONBOARDING (NOVÉ) ---
+    fun setOnboardingCompleted(completed: Boolean) {
+        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, completed).apply()
+    }
+
+    fun isOnboardingCompleted(): Boolean {
+        return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
     }
 
     // --- TÉMA APLIKACE ---

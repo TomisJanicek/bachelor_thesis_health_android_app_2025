@@ -14,12 +14,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import android.util.Log
+import android.util.Patterns
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @HiltViewModel
 class DoctorEditViewModel @Inject constructor(
-    @ApplicationContext private val context: Context, // <-- ZMĚNA ZDE
+    @ApplicationContext private val context: Context,
     private val doctorRepository: ILocalDoctorsRepository
 ) : ViewModel(), DoctorEditAction {
 
@@ -28,63 +29,49 @@ class DoctorEditViewModel @Inject constructor(
 
     private var doctorSubscriptionJob: Job? = null
 
+    // --- LOGIKA PRO ZPRACOVÁNÍ POLOHY ---
     fun handleLocationResult(latitude: Double, longitude: Double): Job {
         return viewModelScope.launch {
             Log.d("LocationFlow", "[DoctorEditViewModel] handleLocationResult start")
 
-            // Získáme aktuální data o doktorovi, se kterými budeme pracovat.
-            // Pokud data nejsou dostupná (např. stav je Loading), nemá smysl pokračovat.
             val currentDoctor = (_uiState.value as? DoctorEditUIState.Success)?.data?.doctor
             if (currentDoctor == null) {
-                Log.e("LocationFlow", "handleLocationResult byl volán, ale data o doktorovi nejsou dostupná.")
                 return@launch
             }
 
-            // Vytvoříme novou, aktualizovanou instanci doktora.
+            // 1. Okamžitá aktualizace souřadnic v UI
             var updatedDoctor = currentDoctor.copy(latitude = latitude, longitude = longitude)
+            updateState { currentData -> currentData.copy(doctor = updatedDoctor) }
 
-            // Krok 1: Okamžitě aktualizuj UI stav, aby uživatel viděl změnu.
-            updateState { currentData ->
-                currentData.copy(doctor = updatedDoctor)
-            }
-
-            // Krok 2: Spusť geocoding a počkej na něj.
-            Log.d("LocationFlow", "[DoctorEditViewModel] Spouštím a čekám na reverse geocoding...")
+            // 2. Geocoding (získání adresy)
             val address = getAddressFromCoordinates(context, latitude, longitude)
-            Log.d("LocationFlow", "[DoctorEditViewModel] Výsledek geocodingu: ${address ?: "null"}")
 
-            // Krok 3: Pokud geocoding uspěl, znovu aktualizuj instanci doktora a UI.
+            // 3. Aktualizace adresy v UI (pokud se našla)
             if (address != null) {
                 updatedDoctor = updatedDoctor.copy(addressLabel = address)
-                updateState { currentData ->
-                    currentData.copy(doctor = updatedDoctor)
-                }
+                updateState { currentData -> currentData.copy(doctor = updatedDoctor) }
             }
 
-            // --- KLÍČOVÝ KROK ZDE ---
-            // Krok 4: Ulož finální, aktualizovanou verzi doktora do databáze.
-            Log.d("LocationFlow", "[DoctorEditViewModel] Ukládám finální data doktora do databáze.")
+            // 4. Uložení do DB (aby se změna neztratila při rotaci nebo návratu)
             doctorRepository.update(updatedDoctor)
-
             Log.d("LocationFlow", "[DoctorEditViewModel] handleLocationResult finish")
         }
     }
 
-
+    // --- NAČÍTÁNÍ DAT ---
     fun subscribeToDoctorUpdates(doctorId: Long) {
-        doctorSubscriptionJob?.cancel() // Zrušíme staré poslouchání
+        doctorSubscriptionJob?.cancel()
         doctorSubscriptionJob = viewModelScope.launch {
-            // Použijeme metodu, která vrací Flow
             doctorRepository.getDoctorWithData(doctorId)
-                .distinctUntilChanged() // Ignoruje emise, pokud se data nezměnila
+                .distinctUntilChanged()
                 .collect { doctorFromDb ->
                     if (doctorFromDb != null) {
-                        // Pokaždé, když se data v DB změní, aktualizujeme náš UI stav
                         _uiState.update { currentState ->
-                            // Pokud už máme nějaká data (např. validační chybu), zachováme je
+                            // Zachováme existující stav (např. chyby formuláře), pokud už nějaký máme
                             val existingData = (currentState as? DoctorEditUIState.Success)?.data
                             DoctorEditUIState.Success(
-                                data = existingData?.copy(doctor = doctorFromDb) ?: DoctorEditData(doctor = doctorFromDb)
+                                data = existingData?.copy(doctor = doctorFromDb)
+                                    ?: DoctorEditData(doctor = doctorFromDb)
                             )
                         }
                     } else {
@@ -94,7 +81,7 @@ class DoctorEditViewModel @Inject constructor(
         }
     }
 
-    // ZMĚNA: Metoda saveDoctor nyní provádí validaci a uložení
+    // --- ULOŽENÍ A VALIDACE ---
     override fun saveDoctor() {
         viewModelScope.launch {
             val currentState = _uiState.value
@@ -102,49 +89,51 @@ class DoctorEditViewModel @Inject constructor(
 
             val data = currentState.data
             val doctor = data.doctor ?: return@launch
-            var isValid = true
 
-            // Validace jména
-            val nameError = if (doctor.name?.isBlank() == true) {
-                isValid = false
-                R.string.error_field_required
+            // 1. Validace jména (Povinné pole)
+            val nameError = if (doctor.name.isNullOrBlank()) {
+                R.string.error_field_required // Ujisti se, že máš tento string v strings.xml
             } else {
                 null
             }
 
-            if (isValid) {
-                // Pokud je vše v pořádku, uložíme
+            // 2. Validace emailu (Volitelné, ale pokud je vyplněn, musí být správně)
+            val emailInput = doctor.email ?: ""
+            val isEmailValid = if (emailInput.isBlank()) true else Patterns.EMAIL_ADDRESS.matcher(emailInput).matches()
+
+            val emailError = if (!isEmailValid) {
+                R.string.error_invalid_email // Ujisti se, že máš tento string v strings.xml
+            } else {
+                null
+            }
+
+            // 3. Rozhodnutí
+            if (nameError == null && emailError == null) {
+                // Vše OK -> Uložit a odejít
                 doctorRepository.update(doctor)
                 _uiState.value = DoctorEditUIState.DoctorSaved
             } else {
-                // Jinak aktualizujeme UI s chybami
-                _uiState.update {
-                    (it as DoctorEditUIState.Success).copy(
-                        data = it.data.copy(nameError = nameError)
-                    )
-                }
+                // Chyba -> Zobrazit chyby v UI
+                updateState { it.copy(nameError = nameError, emailError = emailError) }
             }
         }
     }
 
-    // ZMĚNA: Univerzální update funkce, která jen mění stav, NEUKLÁDÁ
+    // --- POMOCNÁ FUNKCE PRO AKTUALIZACI STAVU ---
     private fun updateState(updateAction: (DoctorEditData) -> DoctorEditData) {
         _uiState.update { currentState ->
-            // Aktualizujeme pouze pokud jsme ve stavu Success
             if (currentState is DoctorEditUIState.Success) {
-                // Zavoláme lambda funkci, která nám vrátí nová data
-                val newData = updateAction(currentState.data)
-                // Vrátíme nový Success stav s aktualizovanými daty
-                currentState.copy(data = newData)
+                currentState.copy(data = updateAction(currentState.data))
             } else {
-                // Pokud nejsme ve stavu Success (např. Loading), nic neměníme
                 currentState
             }
         }
     }
 
-    // ZMĚNA: Všechny 'on...Changed' metody nyní pouze volají 'updateState'
+    // --- HANDLERY ZMĚN VE FORMULÁŘI ---
+
     override fun onNameChanged(name: String) {
+        // Při psaní rovnou mažeme chybovou hlášku
         updateState { it.copy(doctor = it.doctor?.copy(name = name), nameError = null) }
     }
 
@@ -153,11 +142,19 @@ class DoctorEditViewModel @Inject constructor(
     }
 
     override fun onEmailChanged(email: String) {
-        updateState { it.copy(doctor = it.doctor?.copy(email = email.ifBlank { null })) }
+        // Okamžitá validace při psaní (volitelné, ale užitečné pro UX)
+        val isValid = if (email.isBlank()) true else Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        val error = if (isValid) null else R.string.error_invalid_email
+
+        updateState {
+            it.copy(
+                doctor = it.doctor?.copy(email = email.ifBlank { null }),
+                emailError = error
+            )
+        }
     }
 
     override fun onLocationChanged(newLabel: String) {
-        // Pouze a jen aktualizujeme textový popisek. Souřadnic se nedotýkáme.
         updateState {
             it.copy(doctor = it.doctor?.copy(addressLabel = newLabel.ifBlank { null }))
         }
@@ -167,10 +164,6 @@ class DoctorEditViewModel @Inject constructor(
         updateState { it.copy(doctor = it.doctor?.copy(subtitle = subtitle.ifBlank { null })) }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        doctorSubscriptionJob?.cancel() // Uklidíme po sobě
-    }
     override fun onLocationCleared() {
         updateState { currentState ->
             currentState.copy(
@@ -183,4 +176,8 @@ class DoctorEditViewModel @Inject constructor(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        doctorSubscriptionJob?.cancel()
+    }
 }

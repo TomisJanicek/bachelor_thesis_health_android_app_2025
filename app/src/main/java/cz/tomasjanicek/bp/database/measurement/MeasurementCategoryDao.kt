@@ -65,4 +65,10 @@ interface MeasurementCategoryDao {
 
     @Query("SELECT * FROM measurement_category_fields")
     suspend fun getAllFieldsList(): List<MeasurementCategoryField>
+
+    @Query("SELECT * FROM measurement_categories WHERE name = :name LIMIT 1")
+    suspend fun getCategoryByName(name: String): MeasurementCategory?
+
+    @Query("SELECT COUNT(*) FROM measurement_categories")
+    suspend fun getCount(): Int
 }

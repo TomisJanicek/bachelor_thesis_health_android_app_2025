@@ -3,6 +3,7 @@ package cz.tomasjanicek.bp.services
 import androidx.room.TypeConverter
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import kotlin.text.format
 
 /**
@@ -11,28 +12,27 @@ import kotlin.text.format
 */
 class Converters {
 
-    // Definuje formát, ve kterém budeme datum ukládat jako text (ISO standard)
     private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-    /**
-     * Převede LocalDate na String, aby ho Room mohl uložit.
-     * @param date Objekt LocalDate nebo null.
-     * @return Textová reprezentace data (např. "2025-12-06") nebo null.
-     */
     @TypeConverter
     fun fromLocalDate(date: LocalDate?): String? {
         return date?.format(dateFormatter)
     }
 
-    /**
-     * Převede String z databáze zpět na LocalDate.
-     * @param value Textová reprezentace data (např. "2025-12-06") nebo null.
-     * @return Objekt LocalDate nebo null.
-     */
     @TypeConverter
-    fun toLocalDate(value: String?): LocalDate? {
-        return value?.let {
-            return LocalDate.parse(it, dateFormatter)
+    fun toLocalDate(value: String?): LocalDate { // Změna: Návratový typ už není LocalDate? (s otazníkem), ale LocalDate (bez)
+        if (value.isNullOrBlank() || value == "0000-00-00") {
+            // ZMĚNA: Místo null vrátíme "záchranné datum".
+            // Tím zabráníme pádu aplikace, protože CycleRecord vyžaduje, aby datum nebylo null.
+            return LocalDate.of(1970, 1, 1)
+        }
+
+        return try {
+            LocalDate.parse(value, dateFormatter)
+        } catch (e: DateTimeParseException) {
+            e.printStackTrace()
+            // I v případě chyby parsování vrátíme záchranné datum
+            LocalDate.of(1970, 1, 1)
         }
     }
 }

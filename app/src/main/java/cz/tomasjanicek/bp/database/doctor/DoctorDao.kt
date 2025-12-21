@@ -54,4 +54,5 @@ interface DoctorDao {
             location = NULL
     """)
     suspend fun resetAllDoctorData()
+
 }

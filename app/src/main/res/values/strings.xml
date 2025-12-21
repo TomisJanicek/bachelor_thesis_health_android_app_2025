@@ -2,4 +2,5 @@
     <string name="app_name">bp</string>
     <string name="error_field_required">Toto pole je povinné</string>
     <string name="error_field_type">Špatná hodnota</string>
+    <string name="error_invalid_email">Zadej email</string>
 </resources>

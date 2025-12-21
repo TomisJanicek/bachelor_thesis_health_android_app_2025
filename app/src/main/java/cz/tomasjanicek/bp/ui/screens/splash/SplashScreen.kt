@@ -15,6 +15,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuth
 import cz.tomasjanicek.bp.auth.AuthRepository
 import cz.tomasjanicek.bp.navigation.INavigationRouter
+import cz.tomasjanicek.bp.ui.screens.settings.SplashDestination
+import cz.tomasjanicek.bp.ui.screens.settings.SplashViewModel
 import kotlinx.coroutines.delay
 
 @Composable

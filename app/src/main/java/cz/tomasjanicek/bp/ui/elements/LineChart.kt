@@ -267,9 +267,14 @@ fun LineChart(
 
                     // --- NOVÁ, TŘÍÚROVŇOVÁ LOGIKA PRO DYNAMICKÝ STYL ---
                     val (pointRadius, strokeWidth, isDetailedStyle) = when(period) {
-                        ChartPeriod.DAY -> Triple(8f, 5f, true)
-                        ChartPeriod.WEEK -> Triple(6f, 4f, true)
-                        else -> Triple(3.5f, 3f, false)
+                        // Den: poloměr zvětšen z 8f na 14f, čára z 5f na 6f
+                        ChartPeriod.DAY -> Triple(14f, 6f, true)
+
+                        // Týden: poloměr zvětšen z 6f na 12f, čára ze 4f na 5f
+                        ChartPeriod.WEEK -> Triple(12f, 5f, true)
+
+                        // Ostatní (Měsíc/Rok): poloměr zvětšen z 3.5f na 8f (tohle byl ten nejmenší bod)
+                        else -> Triple(8f, 4f, false)
                     }
 
                     fun mapX(xEpoch: Long): Float {

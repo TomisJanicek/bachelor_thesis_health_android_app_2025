@@ -13,4 +13,5 @@ data class DoctorEditData(
 
     // Chybové stavy pro validaci (jméno stále potřebuje validaci)
     @StringRes val nameError: Int? = null,
+    val emailError: Int? = null // <-- PŘIDAT TOTO
 )

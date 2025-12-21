@@ -44,4 +44,7 @@ sealed class Destination(val route: String) {
     object LoginScreen : Destination("login_screen")
     object UserScreen : Destination("user_screen")
     object SettingsScreen : Destination("settings_screen")
+
+    object DefaultCategories : Destination("measurement/default_categories")
+
 }

@@ -167,6 +167,13 @@ fun DetailOfExaminationScreen(
             }
         }
 
+        DetailOfExaminationUIState.AllDeleted -> {
+            // Jakmile nastane tento stav, okamžitě navigujeme zpět
+            LaunchedEffect(Unit) {
+                navigationRouter.returBack()
+            }
+        }
+
         is DetailOfExaminationUIState.Loaded -> {
             DetailOfExaminationContent(
                 examinationWithDoctor = state.examinationWithDoctor,
