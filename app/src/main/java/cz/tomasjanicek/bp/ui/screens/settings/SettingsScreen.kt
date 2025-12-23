@@ -59,7 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import cz.tomasjanicek.bp.model.ExaminationNotificationTime
 import cz.tomasjanicek.bp.model.MedicineNotificationTime
 import cz.tomasjanicek.bp.navigation.INavigationRouter

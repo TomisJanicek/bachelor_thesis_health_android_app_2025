@@ -15,6 +15,7 @@ import javax.inject.Inject
 import android.content.Context
 import android.util.Log
 import android.util.Patterns
+import cz.tomasjanicek.bp.utils.EmailValidator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -97,9 +98,10 @@ class DoctorEditViewModel @Inject constructor(
                 null
             }
 
-            // 2. Validace emailu (Volitelné, ale pokud je vyplněn, musí být správně)
+            // 2. Validace emailu
             val emailInput = doctor.email ?: ""
-            val isEmailValid = if (emailInput.isBlank()) true else Patterns.EMAIL_ADDRESS.matcher(emailInput).matches()
+            // POUŽIJEME NOVÝ VALIDÁTOR
+            val isEmailValid = EmailValidator.isValid(emailInput)
 
             val emailError = if (!isEmailValid) {
                 R.string.error_invalid_email // Ujisti se, že máš tento string v strings.xml
@@ -143,7 +145,7 @@ class DoctorEditViewModel @Inject constructor(
 
     override fun onEmailChanged(email: String) {
         // Okamžitá validace při psaní (volitelné, ale užitečné pro UX)
-        val isValid = if (email.isBlank()) true else Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        val isValid = EmailValidator.isValid(email)
         val error = if (isValid) null else R.string.error_invalid_email
 
         updateState {

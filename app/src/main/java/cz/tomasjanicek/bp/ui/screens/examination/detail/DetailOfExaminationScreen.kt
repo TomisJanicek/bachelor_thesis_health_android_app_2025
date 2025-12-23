@@ -77,7 +77,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.tomasjanicek.bp.model.ExaminationStatus
 import cz.tomasjanicek.bp.model.ExaminationWithDoctor
@@ -88,6 +87,7 @@ import cz.tomasjanicek.bp.ui.theme.MyPink
 import cz.tomasjanicek.bp.ui.theme.MyWhite
 import cz.tomasjanicek.bp.utils.DateUtils
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import cz.tomasjanicek.bp.model.Examination
 //import cz.tomasjanicek.bp.ui.elements.StatusSelector
 import cz.tomasjanicek.bp.ui.screens.examination.components.ExaminationItemCard

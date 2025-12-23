@@ -1,15 +1,13 @@
 import java.util.Properties
 
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    kotlin("kapt")
-    id("dagger.hilt.android.plugin")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.google.gms)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.ksp)
 }
 
 val properties = Properties()
@@ -20,22 +18,26 @@ if (propertiesFile.exists()) {
 
 android {
     namespace = "cz.tomasjanicek.bp"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "cz.tomasjanicek.bp"
         minSdk = 29
-        targetSdk = 36
-        // --- ZMĚNA ZDE ---
-        // Načítáme verze z globálních proměnných definovaných v kořenovém build.gradle.kts
+        targetSdk = 35
+
         versionCode = rootProject.extra["appVersionCode"] as Int
         versionName = rootProject.extra["appVersionName"] as String
-        // --- KONEC ZMĚNY ---
+
         manifestPlaceholders["MAPS_API_KEY"] = properties.getProperty("MAPS_API_KEY", "")
         buildConfigField("String", "MAPS_API_KEY", "\"${properties.getProperty("MAPS_API_KEY")}\"")
         buildConfigField("String", "WEB_CLIENT_ID", "\"${properties.getProperty("WEB_CLIENT_ID")}\"")
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Ujistěte se, že tento Runner ve vašem projektu existuje (vytvořili jsme ho dříve)
+        testInstrumentationRunner = "cz.tomasjanicek.bp.HiltTestRunner"
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 
     buildTypes {
@@ -60,125 +62,144 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            excludes += "META-INF/LICENSE.md"
-            excludes += "META-INF/LICENSE-notice.md" // Přidání pravidla pro vyloučení konfliktu
-            excludes += "META-INF/DEPENDENCIES"
-            excludes += "META-INF/LICENSE"
-            excludes += "META-INF/LICENSE.txt"
-            excludes += "META-INF/license.txt"
-            excludes += "META-INF/NOTICE"
-            excludes += "META-INF/NOTICE.txt"
-            excludes += "META-INF/notice.txt"
-            excludes += "META-INF/ASL2.0"
-            excludes += "META-INF/*.kotlin_module"
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/*.kotlin_module"
+            )
         }
     }
 }
 
 dependencies {
-    // === Core a UI závislosti ===
+    // === Core & Lifecycle ===
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
+
+    // === Compose UI ===
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation(libs.accompanist.systemuicontroller)
-    implementation(libs.coil.compose)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.material)
 
-    // === Hilt (Dependency Injection) ===
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.compose)
-    kapt(libs.hilt.kapt)
+    // === Accompanist & Coil ===
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.coil.compose)
 
-    // === Síťování (Retrofit & Moshi & Gson) ===
+    // === Navigation ===
+    implementation(libs.androidx.navigation.compose)
+
+    // === Hilt (DI) ===
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.compose.material3)
+    ksp(libs.hilt.compiler)
+
+    // === Networking ===
     implementation(libs.retrofit)
-    implementation(libs.retrofit.moshi)
-    implementation(libs.retrofit.okhtt3)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.okhttp.logging)
+    implementation(libs.gson)
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
-    implementation(libs.converter.gson)
-    implementation(libs.gson)
 
-    // === Navigace ===
-    implementation(libs.navigation.fragment)
-    implementation(libs.navigation.ktx)
-    implementation(libs.navigation.compose)
-
-    // === Databáze (Room) & DataStore ===
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    kapt(libs.room.compiler.kapt)
+    // === Database (Room) & DataStore ===
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
 
-    // === Mapy & Lokace ===
-    implementation(libs.googlemap)
-    implementation(libs.googlemap.compose)
-    implementation(libs.googlemap.foundation)
-    implementation(libs.googlemap.utils)
-    implementation(libs.googlemap.widgets)
-    implementation(libs.googlemap.compose.utils)
+    // === Firebase & Google Auth ===
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.play.services.auth)
+
+    // === Credential Manager ===
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.identity.googleid)
+
+    // Google Drive REST API
+    implementation(libs.google.api.client.android)
+    implementation(libs.google.api.services.drive)
+    implementation(libs.google.http.client.gson)
+    implementation(libs.google.http.client.android)
+
+    // === Maps & Location ===
     implementation(libs.play.services.location)
-    implementation(libs.accompanist.permissions)
+    implementation(libs.google.maps.compose)
 
-    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    // === Work Manager ===
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
-
-    // === Ostatní utility ===
-    implementation("com.jakewharton.timber:timber:5.0.1")
+    // === Utils ===
+    implementation(libs.timber)
     implementation(libs.mpandroidchart)
-    implementation(kotlin("script-runtime"))
 
-    // === Testovací závislosti ===
+    // ==========================================
+    // TESTOVÁNÍ (UNIT)
+    // ==========================================
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.turbine)
 
-    // === Android Test (Instrumentované testy) ===
+    // ==========================================
+    // TESTOVÁNÍ (UI / INSTRUMENTED)
+    // ==========================================
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // --- OPRAVA: ŘEŠENÍ KONFLIKTU VERZÍ A CHYBĚJÍCÍCH TŘÍD ---
+    // Vynucujeme novější verze knihoven pro obě varianty (test i debug).
+    // Tím předejdeme chybě "Duplicate class" a "NoClassDefFoundError: FileTestStorage".
+
+    val testCoreVersion = "1.6.1"
+    androidTestImplementation("androidx.test:core:$testCoreVersion")
+    debugImplementation("androidx.test:core:$testCoreVersion")
+
+    val testRunnerVersion = "1.6.2"
+    androidTestImplementation("androidx.test:runner:$testRunnerVersion")
+    debugImplementation("androidx.test:runner:$testRunnerVersion")
+
+    // Monitor obsahuje chybějící FileTestStorage
+    val testMonitorVersion = "1.7.2"
+    androidTestImplementation("androidx.test:monitor:$testMonitorVersion")
+    debugImplementation("androidx.test:monitor:$testMonitorVersion")
+
+    // --- HILT TESTING ---
+    // Používáme přímý odkaz, aby to fungovalo spolehlivě
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kspAndroidTest("com.google.dagger:hilt-android-compiler:2.51.1")
+    // Potřebné pro Hilt v debug manifestu (pokud byste používal HiltTestActivity)
+    debugImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+
+    androidTestImplementation(libs.mockk.android)
+
+    // Debug nástroje
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    androidTestImplementation(libs.hilt.android.testing)
-    kaptAndroidTest(libs.hilt.kapt)
-    androidTestImplementation("io.mockk:mockk-android:1.14.6")
-
-    // Credential Manager (Moderní auth)
-    implementation("androidx.credentials:credentials:1.3.0") // Zkontroluj nejnovější verzi
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-
-    // Google ID (pro specifické Google Sign-In options)
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-
-    // Firebase Auth
-    implementation("com.google.firebase:firebase-auth")
-
-    // Google Sign-In a Drive API
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation("com.google.http-client:google-http-client-gson:1.43.3")
-    implementation("com.google.api-client:google-api-client-android:2.2.0")
-    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
-    implementation("com.google.http-client:google-http-client-android:1.43.3")
-
-    // WorkManager + Hilt podpora
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.hilt:hilt-work:1.2.0")
-    kapt("androidx.hilt:hilt-compiler:1.2.0")
-
-
-
-}
-
-// For Hilt
-kapt {
-    correctErrorTypes = true
 }

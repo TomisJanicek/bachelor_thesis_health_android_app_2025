@@ -11,13 +11,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.google.firebase.auth.FirebaseAuth
-import cz.tomasjanicek.bp.auth.AuthRepository
+import androidx.hilt.navigation.compose.hiltViewModel
 import cz.tomasjanicek.bp.navigation.INavigationRouter
 import cz.tomasjanicek.bp.ui.screens.settings.SplashDestination
 import cz.tomasjanicek.bp.ui.screens.settings.SplashViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
